@@ -23,6 +23,7 @@ USER 65532:65532
 WORKDIR /app
 CMD ["/app/main.war"]
 
+#FINAL IMAGE
 FROM tomcat:9.0.38-jdk11-openjdk-slim-buster
 
 RUN mkdir -p /data/hapi/lucenefiles && chmod 775 /data/hapi/lucenefiles

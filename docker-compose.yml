@@ -1,23 +1,33 @@
 version: "3"
 services:
-  hapi-fhir-jpaserver-start:
+  hapi-fhir-jpa:
+    image: arkhn/jpaltime:latest
     build: .
-    container_name: hapi-fhir-jpaserver-start
     restart: on-failure
-    ports:
-      - "8080:8080"
-  hapi-fhir-mysql:
-    image: mysql:latest
-    container_name: hapi-fhir-mysql
-    #https://dev.mysql.com/doc/refman/8.0/en/identifier-case-sensitivity.html
-    command: --lower_case_table_names=1
-    restart: always
-    environment:
-      MYSQL_DATABASE: 'hapi'
-      MYSQL_USER: 'admin'
-      MYSQL_PASSWORD: 'admin'
-      MYSQL_ROOT_PASSWORD: 'admin'
     volumes:
-      - hapi-fhir-mysql:/var/lib/mysql
+      - ./application.override.yml:/opt/hapi/application.yaml
+    environment:
+      SPRING_CONFIG_LOCATION: file:///opt/hapi/application.yaml
+      JDK_JAVA_OPTIONS: -Xmx4g
+
+  postgres:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=hapi
+      - POSTGRES_PASSWORD=deadbeefdeadbeef
+      - POSTGRES_DB=test-hapi-db
+    ports:
+      - 5432:5432
+    volumes:
+      - hapi-pgdata:/var/lib/postgresql/data
+
+  nginx:
+    image: nginx
+    restart: always
+    ports:
+      - 8080:8080
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+
 volumes:
-  hapi-fhir-mysql:
+  hapi-pgdata:
