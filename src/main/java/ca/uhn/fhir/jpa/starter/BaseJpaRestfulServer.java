@@ -22,6 +22,7 @@ import ca.uhn.fhir.jpa.provider.JpaConformanceProviderDstu2;
 import ca.uhn.fhir.jpa.provider.SubscriptionTriggeringProvider;
 import ca.uhn.fhir.jpa.provider.TerminologyUploaderProvider;
 import ca.uhn.fhir.jpa.provider.dstu3.JpaConformanceProviderDstu3;
+import ca.uhn.fhir.jpa.rp.r4.DocumentReferenceResourceProvider;
 import ca.uhn.fhir.jpa.search.DatabaseBackedPagingProvider;
 import ca.uhn.fhir.jpa.subscription.util.SubscriptionDebugLogInterceptor;
 import ca.uhn.fhir.mdm.provider.MdmProviderLoader;
@@ -139,7 +140,13 @@ public class BaseJpaRestfulServer extends RestfulServer {
     if (appProperties.getMdm_enabled())
       mdmProviderProvider.get().loadProvider();
 
-    registerProviders(resourceProviderFactory.createProviders());
+    // Add custom DocumentReference resource provider with the extended operation
+    resourceProviders.addSupplier(() -> new RegexDocumentReferenceResourceProvider());
+    // Remove default DocumentReference resource provider
+    List<Object> providers = resourceProviders.createProviders().stream()
+        .filter(x -> x.getClass() != DocumentReferenceResourceProvider.class).collect(Collectors.toList());
+
+    registerProviders(providers);
     registerProvider(jpaSystemProvider);
 
     /*
@@ -308,7 +315,6 @@ public class BaseJpaRestfulServer extends RestfulServer {
     }
 
     // Cascading deletes
-
     if (appProperties.getAllow_cascading_deletes()) {
       CascadingDeleteInterceptor cascadingDeleteInterceptor = new CascadingDeleteInterceptor(ctx, daoRegistry,
           interceptorBroadcaster);
