@@ -29,6 +29,10 @@ import org.hl7.fhir.r4.model.DocumentReference;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.jpa.api.dao.IFhirResourceDao;
+import ca.uhn.fhir.jpa.dao.BaseHapiFhirDao;
+import ca.uhn.fhir.jpa.dao.BaseHapiFhirResourceDao;
+import ca.uhn.fhir.jpa.dao.IFulltextSearchSvc;
 import ca.uhn.fhir.jpa.model.entity.ResourceTable;
 import ca.uhn.fhir.jpa.rp.r4.DocumentReferenceResourceProvider;
 import ca.uhn.fhir.parser.IParser;
@@ -37,15 +41,24 @@ import ca.uhn.fhir.rest.annotation.OperationParam;
 
 public class RegexDocumentReferenceResourceProvider extends DocumentReferenceResourceProvider {
 
-    @PersistenceContext(type = PersistenceContextType.TRANSACTION)
-    private EntityManager myEntityManager;
+    // @PersistenceContext(type = PersistenceContextType.TRANSACTION)
+    // private EntityManager myEntityManager;
 
     // ESClient esClient = new ESClient();
+
+    public RegexDocumentReferenceResourceProvider(FhirContext theContext) {
+        super();
+        BaseHapiFhirResourceDaoDocumentReference dao = new BaseHapiFhirResourceDaoDocumentReference();
+        dao.setContext(theContext);
+        this.setContext(theContext);
+        this.setDao(dao);
+    }
 
     @Operation(name = "$regex", idempotent = true)
     public Bundle patientTypeOperation(@OperationParam(name = "regex") String theRegex) {
         Bundle bundle = new Bundle();
-
+        BaseHapiFhirResourceDaoDocumentReference tmp = (BaseHapiFhirResourceDaoDocumentReference) this.getDao();
+        return tmp.coucou(theRegex);
         // SearchRequest searchRequest = new SearchRequest("document-references");
         // SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         // searchSourceBuilder.query(QueryBuilders.regexpQuery("meta.content",
@@ -71,29 +84,5 @@ public class RegexDocumentReferenceResourceProvider extends DocumentReferenceRes
         // config.addClass(DocumentReference.class);
         // SessionFactory sessionFactory = config.buildSessionFactory();
         // Session searchSession = SessionFactory.openSession();
-        SearchSession searchSession = Search.session(myEntityManager);
-
-        SearchPredicateFactory spf = searchSession.scope(ResourceTable.class).predicate();
-
-        PredicateFinalStep finishedQuery = spf.bool(b -> {
-            // TODO field where we'll put the contents in the fhir doc
-            String contentField = "meta.content";
-            String regexpQuery = "{'regexp':{'" + contentField + "':{'value':'" + theRegex + "'}}}";
-            System.out.println("Build Elasticsearch Regexp Query:" + regexpQuery);
-            b.must(spf.extension(ElasticsearchExtension.get()).fromJson(regexpQuery));
-        });
-
-        SearchQuery<ResourceTable> documentReferencesQuery = searchSession.search(ResourceTable.class)
-                .where(f -> finishedQuery).toQuery();
-
-        System.out.println("About to query:" + documentReferencesQuery.queryString());
-
-        List<ResourceTable> documentReferences = documentReferencesQuery.fetchHits(100);
-        for (ResourceTable documentReference : documentReferences) {
-            // bundle.addEntry().setResource(documentReference.getRes);
-            System.out.println(documentReference);
-        }
-
-        return bundle;
     }
 }

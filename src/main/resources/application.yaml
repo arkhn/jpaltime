@@ -1,3 +1,7 @@
+server:
+  servlet:
+    context-path: /hapi
+
 spring:
   datasource:
     url: "jdbc:postgresql://localhost:5432/test-hapi-db"
@@ -6,8 +10,15 @@ spring:
     driverClassName: org.postgresql.Driver
   jpa:
     properties:
-      hibernate.format_sql: false
-      hibernate.show_sql: false
+      hibernate:
+        format_sql: false
+        show_sql: false
+        search:
+          enabled: true
+          backend:
+            type: elasticsearch
+            analysis:
+              configurer: ca.uhn.fhir.jpa.search.elastic.HapiElasticsearchAnalysisConfigurer
   #      hibernate.dialect: org.hibernate.dialect.h2dialect
   #      hibernate.hbm2ddl.auto: update
   #      hibernate.jdbc.batch_size: 20
@@ -28,6 +39,7 @@ spring:
   main:
     #    TODO 5.6.0 -> Prevent duplicate bean definitions in the Spring batch config in HAPI: see:
     allow-bean-definition-overriding: true
+
 hapi:
   fhir:
     ### This is the FHIR version. Choose between, DSTU2, DSTU3, R4 or R5
@@ -142,14 +154,15 @@ hapi:
 ###   1: NORMALIZED_QUANTITY_STORAGE_SUPPORTED
 ###   2: NORMALIZED_QUANTITY_SEARCH_SUPPORTED
 #    normalized_quantity_search_level: 2
-#elasticsearch:
-#  debug:
-#    pretty_print_json_log: false
-#    refresh_after_write: false
-#  enabled: false
-#  password: SomePassword
-#  required_index_status: YELLOW
-#  rest_url: 'localhost:9200'
-#  protocol: 'http'
-#  schema_management_strategy: CREATE
-#  username: SomeUsername
+
+elasticsearch:
+  debug:
+    pretty_print_json_log: false
+    refresh_after_write: false
+  enabled: true
+  username: elastic
+  password: SomePassword
+  required_index_status: YELLOW
+  rest_url: "localhost:9200"
+  protocol: http
+  schema_management_strategy: CREATE
