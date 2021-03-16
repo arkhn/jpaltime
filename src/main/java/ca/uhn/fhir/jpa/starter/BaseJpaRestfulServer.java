@@ -130,11 +130,8 @@ public class BaseJpaRestfulServer extends RestfulServer {
 
     setFhirContext(fhirSystemDao.getContext());
 
-    // Add custom DocumentReference resource provider with the extended operation
-    resourceProviders.addSupplier(() -> new RegexDocumentReferenceResourceProvider(fhirSystemDao.getContext()));
-    // Remove default DocumentReference resource provider
-    List<Object> providers = resourceProviders.createProviders().stream()
-        .filter(x -> x.getClass() != DocumentReferenceResourceProvider.class).collect(Collectors.toList());
+    // create ResourceProviders
+    List<Object> providers = resourceProviders.createProviders();
 
     registerProviders(providers);
     registerProvider(jpaSystemProvider);

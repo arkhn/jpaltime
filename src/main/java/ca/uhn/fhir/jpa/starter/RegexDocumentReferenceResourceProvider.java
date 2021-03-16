@@ -27,38 +27,32 @@ import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.DocumentReference;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 
 import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.interceptor.api.IInterceptorBroadcaster;
+import ca.uhn.fhir.jpa.api.config.DaoConfig;
+import ca.uhn.fhir.jpa.api.dao.DaoRegistry;
 import ca.uhn.fhir.jpa.api.dao.IFhirResourceDao;
+import ca.uhn.fhir.jpa.api.dao.IFhirSystemDao;
 import ca.uhn.fhir.jpa.dao.BaseHapiFhirDao;
 import ca.uhn.fhir.jpa.dao.BaseHapiFhirResourceDao;
 import ca.uhn.fhir.jpa.dao.IFulltextSearchSvc;
 import ca.uhn.fhir.jpa.model.entity.ResourceTable;
+import ca.uhn.fhir.jpa.provider.IJpaSystemProvider;
 import ca.uhn.fhir.jpa.rp.r4.DocumentReferenceResourceProvider;
+import ca.uhn.fhir.jpa.search.DatabaseBackedPagingProvider;
+import ca.uhn.fhir.jpa.searchparam.registry.ISearchParamRegistry;
 import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.annotation.Operation;
 import ca.uhn.fhir.rest.annotation.OperationParam;
+import ca.uhn.fhir.rest.server.provider.ResourceProviderFactory;
 
 public class RegexDocumentReferenceResourceProvider extends DocumentReferenceResourceProvider {
 
-    // @PersistenceContext(type = PersistenceContextType.TRANSACTION)
-    // private EntityManager myEntityManager;
-
-    // ESClient esClient = new ESClient();
-
-    public RegexDocumentReferenceResourceProvider(FhirContext theContext) {
-        super();
-        BaseHapiFhirResourceDaoDocumentReference dao = new BaseHapiFhirResourceDaoDocumentReference();
-        dao.setContext(theContext);
-        this.setContext(theContext);
-        this.setDao(dao);
-    }
-
     @Operation(name = "$regex", idempotent = true)
     public Bundle patientTypeOperation(@OperationParam(name = "regex") String theRegex) {
-        Bundle bundle = new Bundle();
-        BaseHapiFhirResourceDaoDocumentReference tmp = (BaseHapiFhirResourceDaoDocumentReference) this.getDao();
-        return tmp.coucou(theRegex);
+        return ((IFhirResourceDaoDocumentReference<DocumentReference>) getDao()).regex(theRegex);
         // SearchRequest searchRequest = new SearchRequest("document-references");
         // SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         // searchSourceBuilder.query(QueryBuilders.regexpQuery("meta.content",
