@@ -185,7 +185,6 @@ public class BaseJpaRestfulServer extends RestfulServer {
     /*
      * ETag Support
      */
-
     if (appProperties.getEtag_support_enabled() == false)
       setETagSupport(ETagSupportEnum.DISABLED);
 
@@ -214,7 +213,6 @@ public class BaseJpaRestfulServer extends RestfulServer {
      * performing searches that return lots of results, but makes the server much
      * more scalable.
      */
-
     setPagingProvider(databaseBackedPagingProvider);
 
     /*
@@ -324,7 +322,6 @@ public class BaseJpaRestfulServer extends RestfulServer {
     }
 
     // Validation
-
     if (validatorModule != null) {
       if (appProperties.getValidation().getRequests_enabled()) {
         RequestValidatingInterceptor interceptor = new RequestValidatingInterceptor();
@@ -342,6 +339,11 @@ public class BaseJpaRestfulServer extends RestfulServer {
 
     if (appProperties.getUse_consent_interceptor()) {
       ConsentInterceptor interceptor = new ConsentInterceptor(new MyConsentService(daoRegistry));
+      registerInterceptor(interceptor);
+    }
+
+    if (true) { // TODO
+      MySearchNarrowingInterceptor interceptor = new MySearchNarrowingInterceptor();
       registerInterceptor(interceptor);
     }
 
@@ -392,9 +394,15 @@ public class BaseJpaRestfulServer extends RestfulServer {
       }
     }
 
+<<<<<<< HEAD
     if (factory != null) {
       interceptorService.registerInterceptor(factory.buildUsingStoredStructureDefinitions());
     }
+=======
+    if(factory != null) {
+		 interceptorService.registerInterceptor(factory.buildUsingStoredStructureDefinitions());
+	 }
+>>>>>>> Skeleton for auth interceptors
 
     if (appProperties.getLastn_enabled()) {
       daoConfig.setLastNEnabled(true);
