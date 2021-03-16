@@ -140,11 +140,8 @@ public class BaseJpaRestfulServer extends RestfulServer {
     if (appProperties.getMdm_enabled())
       mdmProviderProvider.get().loadProvider();
 
-    // Add custom DocumentReference resource provider with the extended operation
-    resourceProviders.addSupplier(() -> new RegexDocumentReferenceResourceProvider(fhirSystemDao.getContext()));
-    // Remove default DocumentReference resource provider
-    List<Object> providers = resourceProviders.createProviders().stream()
-        .filter(x -> x.getClass() != DocumentReferenceResourceProvider.class).collect(Collectors.toList());
+    // create ResourceProviders
+    List<Object> providers = resourceProviderFactory.createProviders();
 
     registerProviders(providers);
     registerProvider(jpaSystemProvider);
