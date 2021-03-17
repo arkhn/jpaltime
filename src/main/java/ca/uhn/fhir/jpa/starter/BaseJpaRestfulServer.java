@@ -328,7 +328,7 @@ public class BaseJpaRestfulServer extends RestfulServer {
       }
     }
 
-    if (true) { // TODO
+    if (appProperties.getUse_narrowing_interceptor()) {
       MySearchNarrowingInterceptor interceptor = new MySearchNarrowingInterceptor(daoRegistry);
       registerInterceptor(interceptor);
     }
