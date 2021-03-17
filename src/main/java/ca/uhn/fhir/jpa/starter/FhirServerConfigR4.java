@@ -9,7 +9,6 @@ import ca.uhn.fhir.jpa.starter.annotations.OnR4Condition;
 import ca.uhn.fhir.jpa.starter.cql.StarterCqlR4Config;
 import ca.uhn.fhir.jpa.starter.documentReference.DocumentReferenceDao;
 import ca.uhn.fhir.jpa.starter.documentReference.RegexDocumentReferenceResourceProvider;
-import ca.uhn.fhir.rest.server.IResourceProvider;
 
 import org.springframework.beans.factory.annotation.Autowire;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,9 +16,6 @@ import org.springframework.context.annotation.*;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
