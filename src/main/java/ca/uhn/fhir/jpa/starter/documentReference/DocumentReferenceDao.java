@@ -1,10 +1,7 @@
-package ca.uhn.fhir.jpa.starter;
+package ca.uhn.fhir.jpa.starter.documentReference;
 
 import java.util.List;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.PersistenceContextType;
 import javax.transaction.Transactional;
 
 import org.hibernate.search.backend.elasticsearch.ElasticsearchExtension;
@@ -19,8 +16,8 @@ import org.hl7.fhir.r4.model.DocumentReference;
 import ca.uhn.fhir.jpa.dao.BaseHapiFhirResourceDao;
 import ca.uhn.fhir.jpa.model.entity.ResourceTable;
 
-public class BaseHapiFhirResourceDaoDocumentReference extends BaseHapiFhirResourceDao<DocumentReference>
-        implements IFhirResourceDaoDocumentReference<DocumentReference> {
+public class DocumentReferenceDao extends BaseHapiFhirResourceDao<DocumentReference>
+        implements IDocumentReferenceDao<DocumentReference> {
 
     @Transactional
     public Bundle regex(String theRegex) {

@@ -7,6 +7,8 @@ import ca.uhn.fhir.jpa.search.DatabaseBackedPagingProvider;
 import ca.uhn.fhir.jpa.search.lastn.ElasticsearchSvcImpl;
 import ca.uhn.fhir.jpa.starter.annotations.OnR4Condition;
 import ca.uhn.fhir.jpa.starter.cql.StarterCqlR4Config;
+import ca.uhn.fhir.jpa.starter.documentReference.DocumentReferenceDao;
+import ca.uhn.fhir.jpa.starter.documentReference.RegexDocumentReferenceResourceProvider;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 
 import org.springframework.beans.factory.annotation.Autowire;
@@ -110,8 +112,8 @@ public class FhirServerConfigR4 extends BaseJavaConfigR4 {
   @Bean(name = "myDocumentReferenceDaoR4", autowire = Autowire.BY_NAME)
   public IFhirResourceDao<org.hl7.fhir.r4.model.DocumentReference> daoDocumentReferenceR4() {
 
-    BaseHapiFhirResourceDaoDocumentReference retVal;
-    retVal = new BaseHapiFhirResourceDaoDocumentReference();
+    DocumentReferenceDao retVal;
+    retVal = new DocumentReferenceDao();
     retVal.setResourceType(org.hl7.fhir.r4.model.DocumentReference.class);
     retVal.setContext(fhirContextR4());
     return retVal;
