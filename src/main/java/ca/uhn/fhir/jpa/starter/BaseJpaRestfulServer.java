@@ -328,12 +328,6 @@ public class BaseJpaRestfulServer extends RestfulServer {
       }
     }
 
-    // Authorization
-    // if (true) { // TODO
-    //   MyAuthorizationInterceptor interceptor = new MyAuthorizationInterceptor();
-    //   registerInterceptor(interceptor);
-    // }
-
     if (true) { // TODO
       MySearchNarrowingInterceptor interceptor = new MySearchNarrowingInterceptor(daoRegistry);
       registerInterceptor(interceptor);
