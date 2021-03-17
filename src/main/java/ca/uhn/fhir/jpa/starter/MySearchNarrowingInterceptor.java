@@ -11,6 +11,7 @@ import ca.uhn.fhir.jpa.searchparam.SearchParameterMap;
 import ca.uhn.fhir.rest.api.server.IBundleProvider;
 import ca.uhn.fhir.rest.api.server.RequestDetails;
 import ca.uhn.fhir.rest.param.ReferenceParam;
+import ca.uhn.fhir.rest.server.exceptions.AuthenticationException;
 import ca.uhn.fhir.rest.server.interceptor.auth.AuthorizedList;
 import ca.uhn.fhir.rest.server.interceptor.auth.SearchNarrowingInterceptor;
 
@@ -33,22 +34,35 @@ public class MySearchNarrowingInterceptor extends SearchNarrowingInterceptor {
          return new AuthorizedList();
       }
 
+      // TODO find allowed organizations from Practitioner id and
+      // PracitionerRole/Consent
+      String[] allowedOrganizations = { authHeader };
+
+      if (allowedOrganizations.length == 0) {
+         throw new AuthenticationException("Don't have access to any organization");
+      }
+
       // Filter requests on Patients
       if (theRequestDetails.getResourceName().equals("Patient")) {
          AuthorizedList authList = new AuthorizedList();
          IFhirResourceDao<Encounter> encounterResourceProvider = daoRegistry.getResourceDao("Encounter");
 
-         // TODO find allowed organizations from Practitioner id and PracitionerRole/Consent
-         List<String> allowedOrganizations = new ArrayList<>();
-         allowedOrganizations.add(authHeader);
-
-         allowedOrganizations.forEach(organization -> {
+         for (String organization : allowedOrganizations) {
             IBundleProvider encountersForAllowedOrganizations = encounterResourceProvider
-                  .search(new SearchParameterMap().add(Encounter.SP_SERVICE_PROVIDER, new ReferenceParam(authHeader)));
+                  .search(new SearchParameterMap().add(Encounter.SP_SERVICE_PROVIDER, new ReferenceParam(organization)));
             encountersForAllowedOrganizations.getResources(0, encountersForAllowedOrganizations.size()).stream()
                   .map(Encounter.class::cast).forEach(e -> authList.addResource(e.getSubject().getReference()));
-         });
+         }
+         // TODO check that there are some resources in authList, otherwise, shouldn't
+         // see anything
          return authList;
+      }
+
+      // Filter requests on Encounters
+      else if (theRequestDetails.getResourceName().equals("Encounter")) {
+         // NOTE no compartment on service-provider so we do it manually
+         theRequestDetails.addParameter(Encounter.SP_SERVICE_PROVIDER, allowedOrganizations);
+         return new AuthorizedList();
       }
 
       return new AuthorizedList();
