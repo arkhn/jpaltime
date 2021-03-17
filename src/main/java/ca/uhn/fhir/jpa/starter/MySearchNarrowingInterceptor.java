@@ -38,47 +38,39 @@ public class MySearchNarrowingInterceptor extends SearchNarrowingInterceptor {
       // TODO find allowed organizations from Practitioner id and
       // PracitionerRole/Consent
       String[] allowedOrganizations = { authHeader };
-      List<String> patientRelatedResources = Arrays.asList("Claim", "DiagnosticReport", "DocumentReference", "Observation");
+      List<String> patientRelatedResources = Arrays.asList("Claim", "DiagnosticReport", "DocumentReference",
+            "Encounter", "Observation", "Procedure");
 
       if (allowedOrganizations.length == 0) {
          throw new AuthenticationException("Don't have access to any organization");
       }
 
       IFhirResourceDao<Encounter> encounterResourceProvider = daoRegistry.getResourceDao("Encounter");
+
+      // Find patients the user is allowed to see
+      List<String> allowedPatientRefs = new ArrayList();
+      for (String organization : allowedOrganizations) {
+         IBundleProvider encountersForAllowedOrganizations = encounterResourceProvider.search(
+               new SearchParameterMap().add(Encounter.SP_SERVICE_PROVIDER, new ReferenceParam(organization)));
+         encountersForAllowedOrganizations.getResources(0, encountersForAllowedOrganizations.size()).stream()
+               .map(Encounter.class::cast).forEach(e -> allowedPatientRefs.add(e.getSubject().getReference()));
+      }
+
+      if (allowedPatientRefs.isEmpty()) {
+         throw new AuthenticationException("Don't have access to any patient");
+      }
+
       // Filter requests on Patients
       if (theRequestDetails.getResourceName().equals("Patient")) {
          AuthorizedList authList = new AuthorizedList();
-
-         for (String organization : allowedOrganizations) {
-            IBundleProvider encountersForAllowedOrganizations = encounterResourceProvider.search(
-                  new SearchParameterMap().add(Encounter.SP_SERVICE_PROVIDER, new ReferenceParam(organization)));
-            encountersForAllowedOrganizations.getResources(0, encountersForAllowedOrganizations.size()).stream()
-                  .map(Encounter.class::cast).forEach(e -> authList.addResource(e.getSubject().getReference()));
-         }
-         // TODO check that there are some resources in authList, otherwise, shouldn't
-         // see anything
+         allowedPatientRefs.forEach(authList::addResources);
          return authList;
-      }
-
-      // Filter requests on Encounters
-      else if (theRequestDetails.getResourceName().equals("Encounter")) {
-         // NOTE no compartment on service-provider so we do it manually
-         theRequestDetails.addParameter(Encounter.SP_SERVICE_PROVIDER, allowedOrganizations);
-         return new AuthorizedList();
       }
 
       // Filter requests on Observations
       else if (patientRelatedResources.contains(theRequestDetails.getResourceName())) {
          AuthorizedList authList = new AuthorizedList();
-
-         for (String organization : allowedOrganizations) {
-            IBundleProvider encountersForAllowedOrganizations = encounterResourceProvider.search(
-                  new SearchParameterMap().add(Encounter.SP_SERVICE_PROVIDER, new ReferenceParam(organization)));
-            encountersForAllowedOrganizations.getResources(0, encountersForAllowedOrganizations.size()).stream()
-                  .map(Encounter.class::cast).forEach(e -> authList.addCompartment(e.getSubject().getReference()));
-         }
-         // TODO check that there are some resources in authList, otherwise, shouldn't
-         // see anything
+         allowedPatientRefs.forEach(authList::addCompartment);
          return authList;
       }
 
