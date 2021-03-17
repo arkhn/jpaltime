@@ -1,6 +1,5 @@
 package ca.uhn.fhir.jpa.starter;
 
-
 import ca.uhn.fhir.context.FhirVersionEnum;
 import ca.uhn.fhir.jpa.api.config.DaoConfig.ClientIdStrategyEnum;
 import ca.uhn.fhir.jpa.model.entity.NormalizedQuantitySearchLevel;
@@ -57,7 +56,11 @@ public class AppProperties {
   private List<Bundle.BundleType> allowed_bundle_types = null;
   private Boolean narrative_enabled = true;
 
+<<<<<<< HEAD
   private Boolean use_consent_interceptor = true;
+=======
+  private Boolean use_narrowing_interceptor = true;
+>>>>>>> Add use_narrowing_interceptor to app properties
   private Validation validation = new Validation();
   private Map<String, Tester> tester = null;
   private Logger logger = new Logger();
@@ -172,12 +175,12 @@ public class AppProperties {
     this.subscription = subscription;
   }
 
-  public Boolean getUse_consent_interceptor() {
-    return use_consent_interceptor;
+  public Boolean getUse_narrowing_interceptor() {
+    return use_narrowing_interceptor;
   }
 
-  public void setUse_consent_interceptor(Boolean use_consent_interceptor) {
-    this.use_consent_interceptor = use_consent_interceptor;
+  public void setUse_narrowing_interceptor(Boolean use_narrowing_interceptor) {
+    this.use_narrowing_interceptor = use_narrowing_interceptor;
   }
 
   public Validation getValidation() {

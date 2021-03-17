@@ -39,7 +39,6 @@ import ca.uhn.fhir.rest.server.interceptor.LoggingInterceptor;
 import ca.uhn.fhir.rest.server.interceptor.RequestValidatingInterceptor;
 import ca.uhn.fhir.rest.server.interceptor.ResponseHighlighterInterceptor;
 import ca.uhn.fhir.rest.server.interceptor.ResponseValidatingInterceptor;
-import ca.uhn.fhir.rest.server.interceptor.consent.ConsentInterceptor;
 import ca.uhn.fhir.rest.server.interceptor.partition.RequestTenantPartitionInterceptor;
 import ca.uhn.fhir.rest.server.provider.ResourceProviderFactory;
 import ca.uhn.fhir.rest.server.tenant.UrlBaseTenantIdentificationStrategy;
@@ -337,7 +336,7 @@ public class BaseJpaRestfulServer extends RestfulServer {
       }
     }
 
-    if (true) { // TODO
+    if (appProperties.getUse_narrowing_interceptor()) {
       MySearchNarrowingInterceptor interceptor = new MySearchNarrowingInterceptor(daoRegistry);
       registerInterceptor(interceptor);
     }
@@ -389,15 +388,9 @@ public class BaseJpaRestfulServer extends RestfulServer {
       }
     }
 
-<<<<<<< HEAD
     if (factory != null) {
       interceptorService.registerInterceptor(factory.buildUsingStoredStructureDefinitions());
     }
-=======
-    if(factory != null) {
-		 interceptorService.registerInterceptor(factory.buildUsingStoredStructureDefinitions());
-	 }
->>>>>>> Skeleton for auth interceptors
 
     if (appProperties.getLastn_enabled()) {
       daoConfig.setLastNEnabled(true);
