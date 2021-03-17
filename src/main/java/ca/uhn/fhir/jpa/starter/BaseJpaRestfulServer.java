@@ -337,11 +337,6 @@ public class BaseJpaRestfulServer extends RestfulServer {
       }
     }
 
-    if (appProperties.getUse_consent_interceptor()) {
-      ConsentInterceptor interceptor = new ConsentInterceptor(new MyConsentService(daoRegistry));
-      registerInterceptor(interceptor);
-    }
-
     if (true) { // TODO
       MySearchNarrowingInterceptor interceptor = new MySearchNarrowingInterceptor(daoRegistry);
       registerInterceptor(interceptor);
