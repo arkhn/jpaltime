@@ -12,7 +12,6 @@ import ca.uhn.fhir.jpa.binstore.BinaryStorageInterceptor;
 import ca.uhn.fhir.jpa.bulk.provider.BulkDataExportProvider;
 import ca.uhn.fhir.jpa.interceptor.CascadingDeleteInterceptor;
 import ca.uhn.fhir.jpa.packages.IPackageInstallerSvc;
-import ca.uhn.fhir.jpa.packages.PackageInstallOutcomeJson;
 import ca.uhn.fhir.jpa.packages.PackageInstallationSpec;
 import ca.uhn.fhir.jpa.partition.PartitionManagementProvider;
 import ca.uhn.fhir.jpa.provider.*;
@@ -177,7 +176,6 @@ public class BaseJpaRestfulServer extends RestfulServer {
     /*
      * ETag Support
      */
-
     if (appProperties.getEtag_support_enabled() == false)
       setETagSupport(ETagSupportEnum.DISABLED);
 
@@ -208,7 +206,6 @@ public class BaseJpaRestfulServer extends RestfulServer {
      * a performance hit when performing searches that return lots of results,
      * but makes the server much more scalable.
      */
-
     setPagingProvider(databaseBackedPagingProvider);
 
     /*
@@ -317,7 +314,6 @@ public class BaseJpaRestfulServer extends RestfulServer {
     }
 
     // Validation
-
     if (validatorModule != null) {
       if (appProperties.getValidation().getRequests_enabled()) {
         RequestValidatingInterceptor interceptor = new RequestValidatingInterceptor();
@@ -335,6 +331,11 @@ public class BaseJpaRestfulServer extends RestfulServer {
 
     if (appProperties.getUse_consent_interceptor()) {
       ConsentInterceptor interceptor = new ConsentInterceptor(new MyConsentService(daoRegistry));
+      registerInterceptor(interceptor);
+    }
+
+    if (appProperties.getUse_narrowing_interceptor()) {
+      MySearchNarrowingInterceptor interceptor = new MySearchNarrowingInterceptor(daoRegistry);
       registerInterceptor(interceptor);
     }
 
@@ -383,7 +384,6 @@ public class BaseJpaRestfulServer extends RestfulServer {
     if(factory != null) {
 		 interceptorService.registerInterceptor(factory.buildUsingStoredStructureDefinitions());
 	 }
-
 
     if (appProperties.getLastn_enabled()) {
       daoConfig.setLastNEnabled(true);
