@@ -1,11 +1,14 @@
 package ca.uhn.fhir.jpa.starter;
 
 import org.hl7.fhir.instance.model.api.IBaseResource;
+import org.hl7.fhir.r4.model.Claim;
 import org.hl7.fhir.r4.model.Consent;
+import org.hl7.fhir.r4.model.DiagnosticReport;
+import org.hl7.fhir.r4.model.DocumentReference;
 import org.hl7.fhir.r4.model.Encounter;
 import org.hl7.fhir.r4.model.Observation;
 import org.hl7.fhir.r4.model.Patient;
-import org.hl7.fhir.r4.model.Reference;
+import org.hl7.fhir.r4.model.Procedure;
 import org.hl7.fhir.r4.model.Consent.ConsentProvisionType;
 
 import ca.uhn.fhir.jpa.api.dao.DaoRegistry;
@@ -42,22 +45,33 @@ public class MyConsentService implements IConsentService {
       // Find the reference for the Patient associated to theResource
       String patRef = "";
       if (theResource instanceof Patient) { // Patient
-         Patient pat = (Patient) theResource;
-         patRef = pat.getIdElement().toVersionless().getValue();
-      } else {
-         try {
-            Reference pat = (Reference) theResource.getClass().getMethod("getSubject").invoke(theResource);
-            if (pat.getType().equals("Patient"))
-               patRef = pat.getReference();
-         } catch (Exception e) {
-         }
+         Patient res = (Patient) theResource;
+         patRef = res.getIdElement().toVersionless().getValue();
+      } else if (theResource instanceof Observation) { // Observation
+         Observation res = (Observation) theResource;
+         patRef = res.getSubject().getReference();
+      } else if (theResource instanceof DocumentReference) { // DocumentReference
+         DocumentReference res = (DocumentReference) theResource;
+         patRef = res.getSubject().getReference();
+      } else if (theResource instanceof DiagnosticReport) { // DiagnosticReport
+         DiagnosticReport res = (DiagnosticReport) theResource;
+         patRef = res.getSubject().getReference();
+      } else if (theResource instanceof Encounter) { // Encounter
+         Encounter res = (Encounter) theResource;
+         patRef = res.getSubject().getReference();
+      } else if (theResource instanceof Procedure) { // Procedure
+         Procedure res = (Procedure) theResource;
+         patRef = res.getSubject().getReference();
+      } else if (theResource instanceof Claim) { // Claim
+         Claim res = (Claim) theResource;
+         patRef = res.getPatient().getReference();
       }
 
       if (patRef.equals("")) {
          return ConsentOutcome.AUTHORIZED;
       }
 
-      // FIXME Could you avoid the newSynchronous?
+      // FIXME Could you avoid the newSynchronous? Without it, the search query never ends
       SearchParameterMap consentSearchParams = SearchParameterMap.newSynchronous().add(Consent.SP_PATIENT,
             new ReferenceParam(patRef));
       IBundleProvider consentsForPatient = myConsentDao.search(consentSearchParams);
@@ -69,8 +83,4 @@ public class MyConsentService implements IConsentService {
 
       return ConsentOutcome.AUTHORIZED;
    }
-}
-
-interface IPatientRelatedResource {
-   public Reference getSubject();
 }
