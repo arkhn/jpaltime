@@ -1,10 +1,12 @@
 package ca.uhn.fhir.jpa.starter;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.hl7.fhir.r4.model.Encounter;
+import org.hl7.fhir.r4.model.PractitionerRole;
 
 import ca.uhn.fhir.jpa.api.dao.DaoRegistry;
 import ca.uhn.fhir.jpa.api.dao.IFhirResourceDao;
@@ -19,9 +21,11 @@ import ca.uhn.fhir.rest.server.interceptor.auth.SearchNarrowingInterceptor;
 public class MySearchNarrowingInterceptor extends SearchNarrowingInterceptor {
 
    IFhirResourceDao<Encounter> encounterResourceProvider;
+   IFhirResourceDao<PractitionerRole> practitionerRoleResourceProvider;
 
    MySearchNarrowingInterceptor(DaoRegistry daoRegistry) {
       encounterResourceProvider = daoRegistry.getResourceDao("Encounter");
+      practitionerRoleResourceProvider = daoRegistry.getResourceDao("PractitionerRole");
    }
 
    @Override
@@ -35,13 +39,14 @@ public class MySearchNarrowingInterceptor extends SearchNarrowingInterceptor {
          return new AuthorizedList();
       }
 
-      // TODO find allowed organizations from Practitioner id and
-      // PracitionerRole/Consent
-      String[] allowedOrganizations = { authHeader };
-      List<String> patientRelatedResources = Arrays.asList("Claim", "DiagnosticReport", "DocumentReference",
-            "Encounter", "Observation", "Procedure");
+      // Find Organizations for Pracatitioner
+      IBundleProvider rolesForPractitioner = practitionerRoleResourceProvider
+            .search(new SearchParameterMap().add(PractitionerRole.SP_PRACTITIONER, new ReferenceParam(authHeader)));
+      List<String> allowedOrganizations = rolesForPractitioner.getResources(0, rolesForPractitioner.size()).stream()
+            .map(PractitionerRole.class::cast).map(p -> p.getOrganization().getReference())
+            .collect(Collectors.toList());
 
-      if (allowedOrganizations.length == 0) {
+      if (allowedOrganizations.isEmpty()) {
          throw new AuthenticationException("Don't have access to any organization");
       }
 
@@ -58,14 +63,16 @@ public class MySearchNarrowingInterceptor extends SearchNarrowingInterceptor {
          throw new AuthenticationException("Don't have access to any patient");
       }
 
+      List<String> patientRelatedResources = Arrays.asList("Claim", "DiagnosticReport", "DocumentReference",
+            "Encounter", "Observation", "Procedure");
+
       // Filter requests on Patients
       if (theRequestDetails.getResourceName().equals("Patient")) {
          AuthorizedList authList = new AuthorizedList();
          allowedPatientRefs.forEach(authList::addResources);
          return authList;
       }
-
-      // Filter requests on Observations
+      // Filter requests on other resources
       else if (patientRelatedResources.contains(theRequestDetails.getResourceName())) {
          AuthorizedList authList = new AuthorizedList();
          allowedPatientRefs.forEach(authList::addCompartment);
