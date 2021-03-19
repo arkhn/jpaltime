@@ -171,7 +171,7 @@ public class AppProperties {
     return use_narrowing_interceptor;
   }
 
-  public void setUse_narrowing_interceptor(Boolean validation) {
+  public void setUse_narrowing_interceptor(Boolean use_narrowing_interceptor) {
     this.use_narrowing_interceptor = use_narrowing_interceptor;
   }
 
