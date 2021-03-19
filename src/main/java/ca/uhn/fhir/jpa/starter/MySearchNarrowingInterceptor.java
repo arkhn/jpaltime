@@ -18,10 +18,10 @@ import ca.uhn.fhir.rest.server.interceptor.auth.SearchNarrowingInterceptor;
 
 public class MySearchNarrowingInterceptor extends SearchNarrowingInterceptor {
 
-   DaoRegistry daoRegistry;
+   IFhirResourceDao<Encounter> encounterResourceProvider;
 
    MySearchNarrowingInterceptor(DaoRegistry daoRegistry) {
-      this.daoRegistry = daoRegistry;
+      encounterResourceProvider = daoRegistry.getResourceDao("Encounter");
    }
 
    @Override
@@ -45,13 +45,11 @@ public class MySearchNarrowingInterceptor extends SearchNarrowingInterceptor {
          throw new AuthenticationException("Don't have access to any organization");
       }
 
-      IFhirResourceDao<Encounter> encounterResourceProvider = daoRegistry.getResourceDao("Encounter");
-
       // Find patients the user is allowed to see
       List<String> allowedPatientRefs = new ArrayList();
       for (String organization : allowedOrganizations) {
-         IBundleProvider encountersForAllowedOrganizations = encounterResourceProvider.search(
-               new SearchParameterMap().add(Encounter.SP_SERVICE_PROVIDER, new ReferenceParam(organization)));
+         IBundleProvider encountersForAllowedOrganizations = encounterResourceProvider
+               .search(new SearchParameterMap().add(Encounter.SP_SERVICE_PROVIDER, new ReferenceParam(organization)));
          encountersForAllowedOrganizations.getResources(0, encountersForAllowedOrganizations.size()).stream()
                .map(Encounter.class::cast).forEach(e -> allowedPatientRefs.add(e.getSubject().getReference()));
       }
