@@ -177,7 +177,6 @@ public class BaseJpaRestfulServer extends RestfulServer {
     /*
      * ETag Support
      */
-
     if (appProperties.getEtag_support_enabled() == false)
       setETagSupport(ETagSupportEnum.DISABLED);
 
@@ -206,7 +205,6 @@ public class BaseJpaRestfulServer extends RestfulServer {
      * performing searches that return lots of results, but makes the server much
      * more scalable.
      */
-
     setPagingProvider(databaseBackedPagingProvider);
 
     /*
@@ -323,6 +321,11 @@ public class BaseJpaRestfulServer extends RestfulServer {
         interceptor.setValidatorModules(Collections.singletonList(validatorModule));
         registerInterceptor(interceptor);
       }
+    }
+
+    if (appProperties.getUse_narrowing_interceptor()) {
+      MySearchNarrowingInterceptor interceptor = new MySearchNarrowingInterceptor(daoRegistry);
+      registerInterceptor(interceptor);
     }
 
     // GraphQL
