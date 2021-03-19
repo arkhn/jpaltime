@@ -34,14 +34,17 @@ public class MySearchNarrowingInterceptor extends SearchNarrowingInterceptor {
       // one which is for a user that has access to one patient, and
       // another that has full access.
       String authHeader = theRequestDetails.getHeader("Authorization");
-      if ("Bearer adminToken".equals(authHeader)) {
+      if (authHeader.isEmpty()) {
+         throw new AuthenticationException("Missing authorization token");
+      } else if (authHeader.equals("Bearer adminToken")) {
          // This user has access to everything
          return new AuthorizedList();
       }
+      String practitionerId = String.format("Practitioner/%s", authHeader);
 
       // Find Organizations for Pracatitioner
       IBundleProvider rolesForPractitioner = practitionerRoleResourceProvider
-            .search(new SearchParameterMap().add(PractitionerRole.SP_PRACTITIONER, new ReferenceParam(authHeader)));
+            .search(new SearchParameterMap().add(PractitionerRole.SP_PRACTITIONER, new ReferenceParam(practitionerId)));
       List<String> allowedOrganizations = rolesForPractitioner.getResources(0, rolesForPractitioner.size()).stream()
             .map(PractitionerRole.class::cast).map(p -> p.getOrganization().getReference())
             .collect(Collectors.toList());
