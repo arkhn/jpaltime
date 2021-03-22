@@ -5,5 +5,5 @@ import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
 
 public interface IDocumentReferenceDao<T extends IBaseResource> extends IFhirResourceDao<T> {
-	Bundle regex(String theRegex);
+	Bundle regex(String thePattern, Boolean theExcludeNegations);
 }
