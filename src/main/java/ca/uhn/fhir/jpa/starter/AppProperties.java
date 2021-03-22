@@ -57,6 +57,7 @@ public class AppProperties {
   private Boolean narrative_enabled = true;
 
   private Boolean use_narrowing_interceptor = true;
+  private Boolean use_consent_interceptor = true;
   private Validation validation = new Validation();
   private Map<String, Tester> tester = null;
   private Logger logger = new Logger();
@@ -166,13 +167,21 @@ public class AppProperties {
   public void setSubscription(Subscription subscription) {
     this.subscription = subscription;
   }
-
+  
   public Boolean getUse_narrowing_interceptor() {
     return use_narrowing_interceptor;
   }
-
+  
   public void setUse_narrowing_interceptor(Boolean use_narrowing_interceptor) {
     this.use_narrowing_interceptor = use_narrowing_interceptor;
+  }
+
+  public Boolean getUse_consent_interceptor() {
+    return use_consent_interceptor;
+  }
+
+  public void setUse_consent_interceptor(Boolean use_consent_interceptor) {
+    this.use_consent_interceptor = use_consent_interceptor;
   }
 
   public Validation getValidation() {
