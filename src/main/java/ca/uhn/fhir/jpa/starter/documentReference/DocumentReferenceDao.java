@@ -1,6 +1,9 @@
 package ca.uhn.fhir.jpa.starter.documentReference;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
@@ -24,17 +27,45 @@ public class DocumentReferenceDao extends BaseHapiFhirResourceDao<DocumentRefere
 
     private static final Logger logger = LoggerFactory.getLogger(DocumentReferenceDao.class);
 
+    private String makeOptionalRegexPattern(String thePattern) {
+        return String.format("(?:%s)?", thePattern);
+    }
+
+    private String buildExcludeNegationsRegex(String thePattern) {
+        String[] stopWords = { "le", "la", "les", "des", "du" };
+        String stopWord = String.format("(?:%s) ", String.join("|", stopWords));
+        // FIXME: are you sure ?
+        // String word = "[\\w\\-àâçèéêëîïòôöûü]+";
+        String keyword = String.format("(%s)[ .,]", thePattern);
+        String[] absence = { "pas de signe", "pas", "non", "sans", "n'\\w+ plus", "absence" };
+        String space = "[ -]";
+        String of = "(?:(?:de )|(?:d'))?";
+        // String absenceOf = [prefix.strip() + space + of for prefix in absence]
+        String[] absenceOf = Arrays.stream(absence).map(prefix -> prefix + space + of).toArray(String[]::new);
+        // absence_of_groups = [f"(?:{prefix})" for prefix in absence_of]
+        String[] absenceOfGroups = Arrays.stream(absenceOf).map(prefix -> String.format("(?:%s)", prefix))
+                .toArray(String[]::new);
+        // absence_regex = f"(?:{'|'.join(absence_of_groups)})"
+        String absenceRegex = String.format("(?:%s) ", String.join("|", absenceOfGroups));
+        String regex = absenceRegex + makeOptionalRegexPattern(stopWord) + keyword;
+        return regex;
+    }
+
     @Transactional
-    public Bundle regex(String theRegex) {
+    public Bundle regex(String thePattern, Boolean theExcludeNegations) {
         Bundle bundle = new Bundle();
         SearchSession searchSession = Search.session(myEntityManager);
 
         SearchPredicateFactory spf = searchSession.scope(ResourceTable.class).predicate();
 
+        String pattern = theExcludeNegations
+                ? String.format("(?=%s)(?=!%s)", thePattern, buildExcludeNegationsRegex(thePattern))
+                : thePattern;
+
         PredicateFinalStep finishedQuery = spf.bool(b -> {
             // TODO field where we'll put the contents in the fhir doc
             String contentField = "myContentText";
-            String regexpQuery = "{'regexp':{'" + contentField + "':{'value':'" + theRegex + "'}}}";
+            String regexpQuery = "{'regexp':{'" + contentField + "':{'value':'" + pattern + "'}}}";
             b.must(spf.extension(ElasticsearchExtension.get()).fromJson(regexpQuery));
         });
 
