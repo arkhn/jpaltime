@@ -25,9 +25,9 @@ public class FhirServerConfigR5 extends BaseJavaConfigR5 {
   private DataSource myDataSource;
 
   /**
-   * We override the paging provider definition so that we can customize
-   * the default/max page sizes for search results. You can set these however
-   * you want, although very large page sizes will require a lot of RAM.
+   * We override the paging provider definition so that we can customize the
+   * default/max page sizes for search results. You can set these however you
+   * want, although very large page sizes will require a lot of RAM.
    */
   @Autowired
   AppProperties appProperties;
@@ -71,15 +71,16 @@ public class FhirServerConfigR5 extends BaseJavaConfigR5 {
   public ElasticsearchSvcImpl elasticsearchSvc() {
     if (EnvironmentHelper.isElasticsearchEnabled(configurableEnvironment)) {
       String elasticsearchUrl = EnvironmentHelper.getElasticsearchServerUrl(configurableEnvironment);
-      String elasticsearchHost = elasticsearchUrl.substring(elasticsearchUrl.indexOf("://")+3, elasticsearchUrl.lastIndexOf(":"));
+      String elasticsearchHost = elasticsearchUrl.substring(elasticsearchUrl.indexOf("://") + 3,
+          elasticsearchUrl.lastIndexOf(":"));
       String elasticsearchUsername = EnvironmentHelper.getElasticsearchServerUsername(configurableEnvironment);
       String elasticsearchPassword = EnvironmentHelper.getElasticsearchServerPassword(configurableEnvironment);
-      int elasticsearchPort = Integer.parseInt(elasticsearchUrl.substring(elasticsearchUrl.lastIndexOf(":")+1));
-      return new ElasticsearchSvcImpl(elasticsearchHost, elasticsearchPort, elasticsearchUsername, elasticsearchPassword);
+      int elasticsearchPort = Integer.parseInt(elasticsearchUrl.substring(elasticsearchUrl.lastIndexOf(":") + 1));
+      return new ElasticsearchSvcImpl(elasticsearchHost, elasticsearchPort, elasticsearchUsername,
+          elasticsearchPassword);
     } else {
       return null;
     }
   }
-
 
 }

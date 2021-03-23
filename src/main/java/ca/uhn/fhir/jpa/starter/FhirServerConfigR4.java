@@ -1,11 +1,16 @@
 package ca.uhn.fhir.jpa.starter;
 
 import ca.uhn.fhir.context.ConfigurationException;
+import ca.uhn.fhir.jpa.api.dao.IFhirResourceDao;
 import ca.uhn.fhir.jpa.config.BaseJavaConfigR4;
 import ca.uhn.fhir.jpa.search.DatabaseBackedPagingProvider;
 import ca.uhn.fhir.jpa.search.lastn.ElasticsearchSvcImpl;
 import ca.uhn.fhir.jpa.starter.annotations.OnR4Condition;
 import ca.uhn.fhir.jpa.starter.cql.StarterCqlR4Config;
+import ca.uhn.fhir.jpa.starter.documentReference.DocumentReferenceDao;
+import ca.uhn.fhir.jpa.starter.documentReference.RegexDocumentReferenceResourceProvider;
+
+import org.springframework.beans.factory.annotation.Autowire;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.*;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -24,9 +29,9 @@ public class FhirServerConfigR4 extends BaseJavaConfigR4 {
   private DataSource myDataSource;
 
   /**
-   * We override the paging provider definition so that we can customize
-   * the default/max page sizes for search results. You can set these however
-   * you want, although very large page sizes will require a lot of RAM.
+   * We override the paging provider definition so that we can customize the
+   * default/max page sizes for search results. You can set these however you
+   * want, although very large page sizes will require a lot of RAM.
    */
   @Autowired
   AppProperties appProperties;
@@ -69,21 +74,45 @@ public class FhirServerConfigR4 extends BaseJavaConfigR4 {
   @Bean()
   public ElasticsearchSvcImpl elasticsearchSvc() {
     if (EnvironmentHelper.isElasticsearchEnabled(configurableEnvironment)) {
-		 String elasticsearchUrl = EnvironmentHelper.getElasticsearchServerUrl(configurableEnvironment);
-		 String elasticsearchHost;
-		 if (elasticsearchUrl.startsWith("http")) {
-			 elasticsearchHost = elasticsearchUrl.substring(elasticsearchUrl.indexOf("://") + 3, elasticsearchUrl.lastIndexOf(":"));
-		 } else {
-			 elasticsearchHost = elasticsearchUrl.substring(0, elasticsearchUrl.indexOf(":"));
-		 }
+      String elasticsearchUrl = EnvironmentHelper.getElasticsearchServerUrl(configurableEnvironment);
+      String elasticsearchHost;
+      if (elasticsearchUrl.startsWith("http")) {
+        elasticsearchHost = elasticsearchUrl.substring(elasticsearchUrl.indexOf("://") + 3,
+            elasticsearchUrl.lastIndexOf(":"));
+      } else {
+        elasticsearchHost = elasticsearchUrl.substring(0, elasticsearchUrl.indexOf(":"));
+      }
 
       String elasticsearchUsername = EnvironmentHelper.getElasticsearchServerUsername(configurableEnvironment);
       String elasticsearchPassword = EnvironmentHelper.getElasticsearchServerPassword(configurableEnvironment);
-      int elasticsearchPort = Integer.parseInt(elasticsearchUrl.substring(elasticsearchUrl.lastIndexOf(":")+1));
-      return new ElasticsearchSvcImpl(elasticsearchHost, elasticsearchPort, elasticsearchUsername, elasticsearchPassword);
+      int elasticsearchPort = Integer.parseInt(elasticsearchUrl.substring(elasticsearchUrl.lastIndexOf(":") + 1));
+      return new ElasticsearchSvcImpl(elasticsearchHost, elasticsearchPort, elasticsearchUsername,
+          elasticsearchPassword);
     } else {
       return null;
     }
+  }
+
+  @Override
+  @Bean(name = "myDocumentReferenceDaoR4")
+  public IFhirResourceDao<org.hl7.fhir.r4.model.DocumentReference> daoDocumentReferenceR4() {
+
+    DocumentReferenceDao retVal;
+    retVal = new DocumentReferenceDao();
+    retVal.setResourceType(org.hl7.fhir.r4.model.DocumentReference.class);
+    retVal.setContext(fhirContextR4());
+    return retVal;
+  }
+
+  @Override
+  @Bean(name = "myDocumentReferenceRpR4")
+  @Lazy
+  public ca.uhn.fhir.jpa.rp.r4.DocumentReferenceResourceProvider rpDocumentReferenceR4() {
+    RegexDocumentReferenceResourceProvider retVal;
+    retVal = new RegexDocumentReferenceResourceProvider();
+    retVal.setContext(fhirContextR4());
+    retVal.setDao(daoDocumentReferenceR4());
+    return retVal;
   }
 
 }

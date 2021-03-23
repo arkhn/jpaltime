@@ -1,7 +1,7 @@
 version: "3"
 services:
 
-  hapi-fhir-jpa:
+  jpaltime:
     image: arkhn/jpaltime:latest
     build: .
     restart: on-failure
@@ -30,6 +30,18 @@ services:
     volumes:
     - ./nginx.conf:/etc/nginx/nginx.conf
 
+  elasticsearch:
+    image: elasticsearch:7.10.1
+    restart: always
+    environment:
+      - ELASTIC_PASSWORD=SomePassword
+      - discovery.type=single-node
+      - xpack.security.enabled=true
+    ports:
+      - 9200:9200
+    volumes:
+      - hapi-esdata:/usr/share/elasticsearch/data
 
 volumes:
   hapi-pgdata:
+  hapi-esdata:
