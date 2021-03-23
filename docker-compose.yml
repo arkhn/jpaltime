@@ -1,15 +1,15 @@
 version: "3"
 services:
 
-  # jpaltime:
-  #   image: arkhn/jpaltime:latest
-  #   build: .
-  #   restart: on-failure
-  #   volumes:
-  #     - ./application.override.yml:/opt/hapi/application.yaml
-  #   environment:
-  #     SPRING_CONFIG_LOCATION: file:///opt/hapi/application.yaml
-  #     JDK_JAVA_OPTIONS: -Xmx4g
+  jpaltime:
+    image: arkhn/jpaltime:latest
+    build: .
+    restart: on-failure
+    volumes:
+      - ./application.override.yml:/opt/hapi/application.yaml
+    environment:
+      SPRING_CONFIG_LOCATION: file:///opt/hapi/application.yaml
+      JDK_JAVA_OPTIONS: -Xmx4g
 
   postgres:
     image: postgres:13
@@ -40,8 +40,8 @@ services:
     ports:
       - 9200:9200
     volumes:
-      - hapi-eldata:/usr/share/elasticsearch/data
+      - hapi-esdata:/usr/share/elasticsearch/data
 
 volumes:
   hapi-pgdata:
-  hapi-eldata:
+  hapi-esdata:

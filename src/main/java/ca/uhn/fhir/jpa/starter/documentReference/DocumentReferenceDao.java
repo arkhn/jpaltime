@@ -13,11 +13,16 @@ import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.DocumentReference;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ca.uhn.fhir.jpa.dao.BaseHapiFhirResourceDao;
 import ca.uhn.fhir.jpa.model.entity.ResourceTable;
 
 public class DocumentReferenceDao extends BaseHapiFhirResourceDao<DocumentReference>
         implements IDocumentReferenceDao<DocumentReference> {
+
+    private static final Logger logger = LoggerFactory.getLogger(DocumentReferenceDao.class);
 
     @Transactional
     public Bundle regex(String theRegex) {
@@ -30,20 +35,18 @@ public class DocumentReferenceDao extends BaseHapiFhirResourceDao<DocumentRefere
             // TODO field where we'll put the contents in the fhir doc
             String contentField = "myContentText";
             String regexpQuery = "{'regexp':{'" + contentField + "':{'value':'" + theRegex + "'}}}";
-            System.out.println("Build Elasticsearch Regexp Query:" + regexpQuery);
             b.must(spf.extension(ElasticsearchExtension.get()).fromJson(regexpQuery));
         });
 
         SearchQuery<ResourceTable> documentReferencesQuery = searchSession.search(ResourceTable.class)
                 .where(f -> finishedQuery).toQuery();
 
-        System.out.println("About to query:" + documentReferencesQuery.queryString());
+        logger.debug("About to query:" + documentReferencesQuery.queryString());
 
         // TODO: paginate results
         List<ResourceTable> documentReferences = documentReferencesQuery.fetchHits(100);
         for (ResourceTable documentReference : documentReferences) {
             bundle.addEntry().setResource((DocumentReference) toResource(documentReference, false));
-            System.out.println(documentReference);
         }
 
         return bundle;
