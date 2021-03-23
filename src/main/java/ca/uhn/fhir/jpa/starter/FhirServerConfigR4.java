@@ -108,7 +108,7 @@ public class FhirServerConfigR4 extends BaseJavaConfigR4 {
   }
 
   @Override
-  @Bean(name = "myDocumentReferenceDaoR4", autowire = Autowire.BY_NAME)
+  @Bean(name = "myDocumentReferenceDaoR4")
   public IFhirResourceDao<org.hl7.fhir.r4.model.DocumentReference> daoDocumentReferenceR4() {
 
     DocumentReferenceDao retVal;
