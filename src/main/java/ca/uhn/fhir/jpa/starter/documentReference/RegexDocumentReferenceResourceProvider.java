@@ -11,9 +11,9 @@ import ca.uhn.fhir.rest.annotation.OperationParam;
 public class RegexDocumentReferenceResourceProvider extends DocumentReferenceResourceProvider {
 
     @Operation(name = "$regex", idempotent = true)
-    public Bundle patientTypeOperation(@OperationParam(name = "pattern") String thePattern,
-            @OperationParam(name = "exclude-negations", min = 0, max = 1) IPrimitiveType<Boolean> theExcludeNegations) {
-        Boolean excludeNegations = theExcludeNegations == null ? false : theExcludeNegations.getValue();
+    public Bundle regexOperation(@OperationParam(name = "pattern") String thePattern,
+            @OperationParam(name = "exclude-negations", min = 0, max = 1, typeName = "boolean") IPrimitiveType<Boolean> theExcludeNegations) {
+        boolean excludeNegations = theExcludeNegations != null ? theExcludeNegations.getValue() : true;
         return ((IDocumentReferenceDao<DocumentReference>) getDao()).regex(thePattern, excludeNegations);
     }
 }
