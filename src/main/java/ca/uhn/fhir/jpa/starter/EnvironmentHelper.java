@@ -2,7 +2,6 @@ package ca.uhn.fhir.jpa.starter;
 
 import ca.uhn.fhir.jpa.config.HapiFhirLocalContainerEntityManagerFactoryBean;
 import ca.uhn.fhir.jpa.search.HapiLuceneAnalysisConfigurer;
-import ca.uhn.fhir.jpa.search.elastic.ElasticsearchHibernatePropertiesBuilder;
 import org.apache.lucene.util.Version;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.search.backend.elasticsearch.cfg.ElasticsearchBackendSettings;
@@ -70,7 +69,7 @@ public class EnvironmentHelper {
 				properties.putIfAbsent(BackendSettings.backendKey(LuceneBackendSettings.LUCENE_VERSION), Version.LATEST);
 
 			} else if (properties.get(BackendSettings.backendKey(BackendSettings.TYPE)).equals(ElasticsearchBackendSettings.TYPE_NAME)) {
-				ElasticsearchHibernatePropertiesBuilder builder = new ElasticsearchHibernatePropertiesBuilder();
+				MyElasticsearchHibernatePropertiesBuilder builder = new MyElasticsearchHibernatePropertiesBuilder();
 				IndexStatus requiredIndexStatus = environment.getProperty("elasticsearch.required_index_status", IndexStatus.class);
 				builder.setRequiredIndexStatus(requireNonNullElse(requiredIndexStatus, IndexStatus.YELLOW));
 				builder.setRestUrl(getElasticsearchServerUrl(environment));
