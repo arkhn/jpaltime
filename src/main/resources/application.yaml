@@ -15,8 +15,7 @@ spring:
           enabled: true
           backend:
             type: elasticsearch
-            analysis:
-              configurer: ca.uhn.fhir.jpa.search.elastic.HapiElasticsearchAnalysisConfigurer
+            analysis.configurer: ca.uhn.fhir.jpa.starter.MyElasticsearchAnalysisConfigurer
 
 hapi:
   fhir:
