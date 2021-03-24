@@ -2,8 +2,6 @@ package ca.uhn.fhir.jpa.starter.documentReference;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
@@ -27,27 +25,26 @@ public class DocumentReferenceDao extends BaseHapiFhirResourceDao<DocumentRefere
 
     private static final Logger logger = LoggerFactory.getLogger(DocumentReferenceDao.class);
 
-    private String makeOptionalRegexPattern(String thePattern) {
-        return String.format("(?:%s)?", thePattern);
+    private String makeOptionalRegexPattern(String pattern) {
+        return String.format("(%s)?", pattern);
     }
 
+    // private String makeNegativeLookbehind(String pattern) {
+    // return String.format("(?\\\\<!%s)", pattern);
+    // }
+
     private String buildExcludeNegationsRegex(String thePattern) {
-        String[] stopWords = { "le", "la", "les", "des", "du" };
-        String stopWord = String.format("(?:%s) ", String.join("|", stopWords));
-        // FIXME: are you sure ?
-        // String word = "[\\w\\-àâçèéêëîïòôöûü]+";
-        String keyword = String.format("(%s)[ .,]", thePattern);
-        String[] absence = { "pas de signe", "pas", "non", "sans", "n'\\w+ plus", "absence" };
-        String space = "[ -]";
-        String of = "(?:(?:de )|(?:d'))?";
-        // String absenceOf = [prefix.strip() + space + of for prefix in absence]
-        String[] absenceOf = Arrays.stream(absence).map(prefix -> prefix + space + of).toArray(String[]::new);
-        // absence_of_groups = [f"(?:{prefix})" for prefix in absence_of]
-        String[] absenceOfGroups = Arrays.stream(absenceOf).map(prefix -> String.format("(?:%s)", prefix))
-                .toArray(String[]::new);
-        // absence_regex = f"(?:{'|'.join(absence_of_groups)})"
-        String absenceRegex = String.format("(?:%s) ", String.join("|", absenceOfGroups));
-        String regex = absenceRegex + makeOptionalRegexPattern(stopWord) + keyword;
+        String stopWords = "(le|la|les|des|du) ";
+        // String[] absence = { "pas de signe", "pas", "non", "sans", "absence",
+        // "n\\\\'\\w+ plus" };
+        String[] absence = { "pas de signe", "pas", "non", "sans", "absence" };
+        // String of = "(?:(?:de )|(?:d\\\\'))?";
+        String of = makeOptionalRegexPattern("de ");
+        String[] absenceOf = Arrays.stream(absence).map(prefix -> prefix + " " + of).toArray(String[]::new);
+        String absenceRegex = String.format("(%s)", String.join("|", absenceOf));
+        // String regex = makeNegativeLookbehind(absenceRegex +
+        // makeOptionalRegexPattern(stopWords)) + thePattern;
+        String regex = absenceRegex + makeOptionalRegexPattern(stopWords) + thePattern;
         return regex;
     }
 
@@ -58,24 +55,27 @@ public class DocumentReferenceDao extends BaseHapiFhirResourceDao<DocumentRefere
 
         SearchPredicateFactory spf = searchSession.scope(ResourceTable.class).predicate();
 
-        String pattern = theExcludeNegations
-                ? String.format("(?=%s)(?=!%s)", thePattern, buildExcludeNegationsRegex(thePattern))
-                : thePattern;
-
         PredicateFinalStep finishedQuery = spf.bool(b -> {
-            // TODO field where we'll put the contents in the fhir doc
             String contentField = "myContentText";
-            String regexpQuery = "{'regexp':{'" + contentField + "':{'value':'" + pattern + "'}}}";
+            String regexpQuery = "{'regexp':{'" + contentField + "':{'value':'.*" + thePattern + ".*'}}}";
             b.must(spf.extension(ElasticsearchExtension.get()).fromJson(regexpQuery));
+            String resourceTypeField = "myResourceType";
+            String resourceTypeQuery = "{'match':{'" + resourceTypeField + "':{'query': 'DocumentReference' }}}";
+            b.must(spf.extension(ElasticsearchExtension.get()).fromJson(resourceTypeQuery));
+            if (theExcludeNegations) {
+                String excludeNegPattern = buildExcludeNegationsRegex(thePattern);
+                String excludeNegRegexpQuery = "{'regexp':{'" + contentField + "':{'value':'.*" + excludeNegPattern + ".*'}}}";
+                b.mustNot(spf.extension(ElasticsearchExtension.get()).fromJson(excludeNegRegexpQuery));
+            }
         });
 
         SearchQuery<ResourceTable> documentReferencesQuery = searchSession.search(ResourceTable.class)
                 .where(f -> finishedQuery).toQuery();
 
-        logger.debug("About to query:" + documentReferencesQuery.queryString());
+        logger.info("About to query:" + documentReferencesQuery.queryString());
 
-        // TODO: paginate results
-        List<ResourceTable> documentReferences = documentReferencesQuery.fetchHits(100);
+        // TODO: Do we need to paginate results for performance reasons?
+        List<ResourceTable> documentReferences = documentReferencesQuery.fetchAllHits();
         for (ResourceTable documentReference : documentReferences) {
             bundle.addEntry().setResource((DocumentReference) toResource(documentReference, false));
         }
