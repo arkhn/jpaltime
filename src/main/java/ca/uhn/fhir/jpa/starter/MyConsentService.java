@@ -9,7 +9,7 @@ import org.hl7.fhir.r4.model.Encounter;
 import org.hl7.fhir.r4.model.Observation;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Procedure;
-import org.hl7.fhir.r4.model.Consent.ConsentProvisionType;
+import org.hl7.fhir.r4.model.Consent.ConsentState;
 
 import ca.uhn.fhir.jpa.api.dao.DaoRegistry;
 import ca.uhn.fhir.jpa.api.dao.IFhirResourceDao;
@@ -75,7 +75,7 @@ public class MyConsentService implements IConsentService {
       IBundleProvider consentsForPatient = myConsentDao.search(consentSearchParams);
       // Look for any deny consent
       if (consentsForPatient.getResources(0, consentsForPatient.size()).stream().map(Consent.class::cast)
-            .anyMatch(c -> c.getProvision().getType() == ConsentProvisionType.DENY)) {
+            .anyMatch(c -> c.getStatus() == ConsentState.REJECTED)) {
          return ConsentOutcome.REJECT;
       }
 

@@ -5,8 +5,10 @@ import java.util.stream.Collectors;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import org.hl7.fhir.r4.model.Consent;
 import org.hl7.fhir.r4.model.Encounter;
 import org.hl7.fhir.r4.model.PractitionerRole;
+import org.hl7.fhir.r4.model.Consent.ConsentState;
 
 import ca.uhn.fhir.jpa.api.dao.DaoRegistry;
 import ca.uhn.fhir.jpa.api.dao.IFhirResourceDao;
@@ -14,18 +16,21 @@ import ca.uhn.fhir.jpa.searchparam.SearchParameterMap;
 import ca.uhn.fhir.rest.api.server.IBundleProvider;
 import ca.uhn.fhir.rest.api.server.RequestDetails;
 import ca.uhn.fhir.rest.param.ReferenceParam;
+import ca.uhn.fhir.rest.param.TokenParam;
 import ca.uhn.fhir.rest.server.exceptions.AuthenticationException;
 import ca.uhn.fhir.rest.server.interceptor.auth.AuthorizedList;
 import ca.uhn.fhir.rest.server.interceptor.auth.SearchNarrowingInterceptor;
 
 public class MySearchNarrowingInterceptor extends SearchNarrowingInterceptor {
 
-   IFhirResourceDao<Encounter> encounterResourceProvider;
-   IFhirResourceDao<PractitionerRole> practitionerRoleResourceProvider;
+   IFhirResourceDao<Encounter> encounterDao;
+   IFhirResourceDao<PractitionerRole> practitionerRoleDao;
+   IFhirResourceDao<Consent> consentDao;
 
    MySearchNarrowingInterceptor(DaoRegistry daoRegistry) {
-      encounterResourceProvider = daoRegistry.getResourceDao("Encounter");
-      practitionerRoleResourceProvider = daoRegistry.getResourceDao("PractitionerRole");
+      encounterDao = daoRegistry.getResourceDao("Encounter");
+      practitionerRoleDao = daoRegistry.getResourceDao("PractitionerRole");
+      consentDao = daoRegistry.getResourceDao("Consent");
    }
 
    @Override
@@ -43,7 +48,7 @@ public class MySearchNarrowingInterceptor extends SearchNarrowingInterceptor {
       String practitionerId = String.format("Practitioner/%s", authHeader);
 
       // Find Organizations for Pracatitioner
-      IBundleProvider rolesForPractitioner = practitionerRoleResourceProvider
+      IBundleProvider rolesForPractitioner = practitionerRoleDao
             .search(new SearchParameterMap().add(PractitionerRole.SP_PRACTITIONER, new ReferenceParam(practitionerId)));
       List<String> allowedOrganizations = rolesForPractitioner.getResources(0, rolesForPractitioner.size()).stream()
             .map(PractitionerRole.class::cast).map(p -> p.getOrganization().getReference())
@@ -53,13 +58,20 @@ public class MySearchNarrowingInterceptor extends SearchNarrowingInterceptor {
          throw new AuthenticationException("Don't have access to any organization");
       }
 
+      // Find deny consents
+      IBundleProvider denyConsents = consentDao
+            .search(new SearchParameterMap().add(Consent.SP_STATUS, new TokenParam(ConsentState.REJECTED.toCode())));
+      List<String> patientsToExclude = denyConsents.getResources(0, denyConsents.size()).stream()
+            .map(Consent.class::cast).map(c -> c.getPatient().getReference()).collect(Collectors.toList());
+
       // Find patients the user is allowed to see
       List<String> allowedPatientRefs = new ArrayList();
       for (String organization : allowedOrganizations) {
-         IBundleProvider encountersForAllowedOrganizations = encounterResourceProvider
+         IBundleProvider encountersForAllowedOrganizations = encounterDao
                .search(new SearchParameterMap().add(Encounter.SP_SERVICE_PROVIDER, new ReferenceParam(organization)));
          encountersForAllowedOrganizations.getResources(0, encountersForAllowedOrganizations.size()).stream()
-               .map(Encounter.class::cast).forEach(e -> allowedPatientRefs.add(e.getSubject().getReference()));
+               .map(Encounter.class::cast).map(e -> e.getSubject().getReference())
+               .filter(patRef -> !patientsToExclude.contains(patRef)).forEach(patRef -> allowedPatientRefs.add(patRef));
       }
 
       if (allowedPatientRefs.isEmpty()) {
