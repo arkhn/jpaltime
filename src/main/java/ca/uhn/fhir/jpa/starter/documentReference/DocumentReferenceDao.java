@@ -29,21 +29,13 @@ public class DocumentReferenceDao extends BaseHapiFhirResourceDao<DocumentRefere
         return String.format("(%s)?", pattern);
     }
 
-    // private String makeNegativeLookbehind(String pattern) {
-    // return String.format("(?\\\\<!%s)", pattern);
-    // }
-
     private String buildExcludeNegationsRegex(String thePattern) {
-        String stopWords = "(le|la|les|des|du) ";
-        // String[] absence = { "pas de signe", "pas", "non", "sans", "absence",
-        // "n\\\\'\\w+ plus" };
+        // TODO improve neg regex creation
+        String stopWords = "(le|la|les|des|du) ";  // TODO add n'\w pas
         String[] absence = { "pas de signe", "pas", "non", "sans", "absence" };
-        // String of = "(?:(?:de )|(?:d\\\\'))?";
-        String of = makeOptionalRegexPattern("de ");
+        String of = makeOptionalRegexPattern("(de|d\\') ");
         String[] absenceOf = Arrays.stream(absence).map(prefix -> prefix + " " + of).toArray(String[]::new);
         String absenceRegex = String.format("(%s)", String.join("|", absenceOf));
-        // String regex = makeNegativeLookbehind(absenceRegex +
-        // makeOptionalRegexPattern(stopWords)) + thePattern;
         String regex = absenceRegex + makeOptionalRegexPattern(stopWords) + thePattern;
         return regex;
     }
@@ -72,7 +64,7 @@ public class DocumentReferenceDao extends BaseHapiFhirResourceDao<DocumentRefere
         SearchQuery<ResourceTable> documentReferencesQuery = searchSession.search(ResourceTable.class)
                 .where(f -> finishedQuery).toQuery();
 
-        logger.info("About to query:" + documentReferencesQuery.queryString());
+        logger.debug(String.format("About to query: %s", documentReferencesQuery.queryString()));
 
         // TODO: Do we need to paginate results for performance reasons?
         List<ResourceTable> documentReferences = documentReferencesQuery.fetchAllHits();
