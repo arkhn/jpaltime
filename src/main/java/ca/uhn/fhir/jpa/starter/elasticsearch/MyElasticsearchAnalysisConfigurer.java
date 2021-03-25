@@ -1,4 +1,4 @@
-package ca.uhn.fhir.jpa.starter;
+package ca.uhn.fhir.jpa.starter.elasticsearch;
 
 // TODO move to own package?
 

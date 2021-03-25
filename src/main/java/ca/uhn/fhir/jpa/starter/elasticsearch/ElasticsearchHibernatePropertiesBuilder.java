@@ -1,7 +1,6 @@
-package ca.uhn.fhir.jpa.starter;
+package ca.uhn.fhir.jpa.starter.elasticsearch;
 
 import ca.uhn.fhir.context.ConfigurationException;
-import ca.uhn.fhir.jpa.search.elastic.ElasticsearchHibernatePropertiesBuilder;
 import ca.uhn.fhir.jpa.search.lastn.ElasticsearchRestClientFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.action.support.master.AcknowledgedResponse;
@@ -29,8 +28,8 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Properties object being used to create an entitymanager for a HAPI FHIR JPA
  * server. This class also injects a starter template into the ES cluster.
  */
-public class MyElasticsearchHibernatePropertiesBuilder extends ElasticsearchHibernatePropertiesBuilder {
-	private static final Logger ourLog = getLogger(MyElasticsearchHibernatePropertiesBuilder.class);
+public class ElasticsearchHibernatePropertiesBuilder {
+	private static final Logger ourLog = getLogger(ElasticsearchHibernatePropertiesBuilder.class);
 
 	private IndexStatus myRequiredIndexStatus = IndexStatus.YELLOW.YELLOW;
 	private SchemaManagementStrategyName myIndexSchemaManagementStrategy = SchemaManagementStrategyName.CREATE;
@@ -53,7 +52,6 @@ public class MyElasticsearchHibernatePropertiesBuilder extends ElasticsearchHibe
 		return this;
 	}
 
-	@Override
 	public void apply(Properties theProperties) {
 
 		// the below properties are used for ElasticSearch integration
@@ -89,7 +87,7 @@ public class MyElasticsearchHibernatePropertiesBuilder extends ElasticsearchHibe
 		theProperties.put(BackendSettings.backendKey(ElasticsearchBackendSettings.LOG_JSON_PRETTY_PRINTING),
 				Boolean.toString(myDebugPrettyPrintJsonLog));
 
-		myInjectStartupTemplate(myProtocol, myRestUrl, myUsername, myPassword);
+		injectStartupTemplate(myProtocol, myRestUrl, myUsername, myPassword);
 
 	}
 
@@ -134,7 +132,7 @@ public class MyElasticsearchHibernatePropertiesBuilder extends ElasticsearchHibe
 		return this;
 	}
 
-	void myInjectStartupTemplate(String theProtocol, String theHostAndPort, String theUsername, String thePassword) {
+	void injectStartupTemplate(String theProtocol, String theHostAndPort, String theUsername, String thePassword) {
 		PutIndexTemplateRequest ngramTemplate = new PutIndexTemplateRequest("ngram-template")
 				.patterns(Arrays.asList("resourcetable-*", "termconcept-*"))
 				.settings(Settings.builder().put("index.max_ngram_diff", 50));

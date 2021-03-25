@@ -65,9 +65,7 @@ public class MyConsentService implements IConsentService {
       } else if (theResource instanceof Claim) { // Claim
          Claim res = (Claim) theResource;
          patRef = res.getPatient().getReference();
-      }
-
-      if (patRef.equals("")) {
+      } else {
          return ConsentOutcome.AUTHORIZED;
       }
 
