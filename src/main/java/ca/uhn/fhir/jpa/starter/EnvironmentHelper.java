@@ -2,7 +2,8 @@ package ca.uhn.fhir.jpa.starter;
 
 import ca.uhn.fhir.jpa.config.HapiFhirLocalContainerEntityManagerFactoryBean;
 import ca.uhn.fhir.jpa.search.HapiLuceneAnalysisConfigurer;
-import ca.uhn.fhir.jpa.search.elastic.ElasticsearchHibernatePropertiesBuilder;
+import ca.uhn.fhir.jpa.starter.elasticsearch.ElasticsearchHibernatePropertiesBuilder;
+
 import org.apache.lucene.util.Version;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.search.backend.elasticsearch.cfg.ElasticsearchBackendSettings;

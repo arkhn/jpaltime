@@ -1,5 +1,6 @@
 package ca.uhn.fhir.jpa.starter.documentReference;
 
+import java.util.Arrays;
 import java.util.List;
 
 import javax.transaction.Transactional;
@@ -24,27 +25,53 @@ public class DocumentReferenceDao extends BaseHapiFhirResourceDao<DocumentRefere
 
     private static final Logger logger = LoggerFactory.getLogger(DocumentReferenceDao.class);
 
+    private String makeOptionalRegexPattern(String pattern) {
+        return String.format("(%s)?", pattern);
+    }
+
+    private String buildExcludeNegationsRegex(String thePattern) {
+        /* Builds a regex that matches negations of the pattern.
+         * For instance, if the pattern is `X`, the regex generated
+         * here will match `pas de signe de X`.
+         */
+        // TODO improve neg regex creation
+        String stopWords = "(le|la|les|des|du) ";  // TODO add n'\w pas
+        String[] absence = { "pas de signe", "pas", "non", "sans", "absence" };
+        String of = makeOptionalRegexPattern("(de|d\\') ");
+        String[] absenceOf = Arrays.stream(absence).map(prefix -> prefix + " " + of).toArray(String[]::new);
+        String absenceRegex = String.format("(%s)", String.join("|", absenceOf));
+        String regex = absenceRegex + makeOptionalRegexPattern(stopWords) + thePattern;
+        return regex;
+    }
+
     @Transactional
-    public Bundle regex(String theRegex) {
+    public Bundle regex(String thePattern, Boolean theExcludeNegations) {
         Bundle bundle = new Bundle();
         SearchSession searchSession = Search.session(myEntityManager);
 
         SearchPredicateFactory spf = searchSession.scope(ResourceTable.class).predicate();
 
         PredicateFinalStep finishedQuery = spf.bool(b -> {
-            // TODO field where we'll put the contents in the fhir doc
             String contentField = "myContentText";
-            String regexpQuery = "{'regexp':{'" + contentField + "':{'value':'" + theRegex + "'}}}";
+            String regexpQuery = "{'regexp':{'" + contentField + "':{'value':'.*" + thePattern + ".*'}}}";
             b.must(spf.extension(ElasticsearchExtension.get()).fromJson(regexpQuery));
+            String resourceTypeField = "myResourceType";
+            String resourceTypeQuery = "{'match':{'" + resourceTypeField + "':{'query': 'DocumentReference' }}}";
+            b.must(spf.extension(ElasticsearchExtension.get()).fromJson(resourceTypeQuery));
+            if (theExcludeNegations) {
+                String excludeNegPattern = buildExcludeNegationsRegex(thePattern);
+                String excludeNegRegexpQuery = "{'regexp':{'" + contentField + "':{'value':'.*" + excludeNegPattern + ".*'}}}";
+                b.mustNot(spf.extension(ElasticsearchExtension.get()).fromJson(excludeNegRegexpQuery));
+            }
         });
 
         SearchQuery<ResourceTable> documentReferencesQuery = searchSession.search(ResourceTable.class)
                 .where(f -> finishedQuery).toQuery();
 
-        logger.debug("About to query:" + documentReferencesQuery.queryString());
+        logger.debug(String.format("About to query: %s", documentReferencesQuery.queryString()));
 
-        // TODO: paginate results
-        List<ResourceTable> documentReferences = documentReferencesQuery.fetchHits(100);
+        // TODO: Do we need to paginate results for performance reasons?
+        List<ResourceTable> documentReferences = documentReferencesQuery.fetchAllHits();
         for (ResourceTable documentReference : documentReferences) {
             bundle.addEntry().setResource((DocumentReference) toResource(documentReference, false));
         }
