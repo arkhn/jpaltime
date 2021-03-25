@@ -18,7 +18,7 @@ spring:
           backend:
             type: elasticsearch
             analysis:
-              configurer: ca.uhn.fhir.jpa.search.elastic.HapiElasticsearchAnalysisConfigurer
+              configurer: ca.uhn.fhir.jpa.starter.elasticsearch.MyElasticsearchAnalysisConfigurer
   #      hibernate.dialect: org.hibernate.dialect.h2dialect
   #      hibernate.hbm2ddl.auto: update
   #      hibernate.jdbc.batch_size: 20
