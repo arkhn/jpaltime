@@ -30,6 +30,10 @@ public class DocumentReferenceDao extends BaseHapiFhirResourceDao<DocumentRefere
     }
 
     private String buildExcludeNegationsRegex(String thePattern) {
+        /* Builds a regex that matches negations of the pattern.
+         * For instance, if the pattern is `X`, the regex generated
+         * here will match `pas de signe de X`.
+         */
         // TODO improve neg regex creation
         String stopWords = "(le|la|les|des|du) ";  // TODO add n'\w pas
         String[] absence = { "pas de signe", "pas", "non", "sans", "absence" };
