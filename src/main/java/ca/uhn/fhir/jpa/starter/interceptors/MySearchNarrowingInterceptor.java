@@ -49,7 +49,8 @@ public class MySearchNarrowingInterceptor extends SearchNarrowingInterceptor {
 
       // Find Organizations for Pracatitioner
       IBundleProvider rolesForPractitioner = practitionerRoleDao
-            .search(new SearchParameterMap().add(PractitionerRole.SP_PRACTITIONER, new ReferenceParam(practitionerId)));
+            .search(new SearchParameterMap().add(PractitionerRole.SP_PRACTITIONER, new ReferenceParam(practitionerId))
+                  .add("permission-status", new TokenParam("active")));
       List<String> allowedOrganizations = rolesForPractitioner.getResources(0, rolesForPractitioner.size()).stream()
             .map(PractitionerRole.class::cast).map(p -> p.getOrganization().getReference())
             .collect(Collectors.toList());
