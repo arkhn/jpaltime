@@ -1,4 +1,4 @@
-package ca.uhn.fhir.jpa.starter;
+package ca.uhn.fhir.jpa.starter.interceptors;
 
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Claim;
@@ -25,7 +25,7 @@ public class MyConsentService implements IConsentService {
 
    private final IFhirResourceDao<Consent> myConsentDao;
 
-   MyConsentService(DaoRegistry daoRegistry) {
+   public MyConsentService(DaoRegistry daoRegistry) {
       myConsentDao = daoRegistry.getResourceDao("Consent");
    }
 

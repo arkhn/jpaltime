@@ -1,4 +1,4 @@
-package ca.uhn.fhir.jpa.starter;
+package ca.uhn.fhir.jpa.starter.interceptors;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,7 +27,7 @@ public class MySearchNarrowingInterceptor extends SearchNarrowingInterceptor {
    IFhirResourceDao<PractitionerRole> practitionerRoleDao;
    IFhirResourceDao<Consent> consentDao;
 
-   MySearchNarrowingInterceptor(DaoRegistry daoRegistry) {
+   public MySearchNarrowingInterceptor(DaoRegistry daoRegistry) {
       encounterDao = daoRegistry.getResourceDao("Encounter");
       practitionerRoleDao = daoRegistry.getResourceDao("PractitionerRole");
       consentDao = daoRegistry.getResourceDao("Consent");
