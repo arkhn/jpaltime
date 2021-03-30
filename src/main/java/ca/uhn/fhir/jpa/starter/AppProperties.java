@@ -56,11 +56,7 @@ public class AppProperties {
   private List<Bundle.BundleType> allowed_bundle_types = null;
   private Boolean narrative_enabled = true;
 
-<<<<<<< HEAD
-  private Boolean use_consent_interceptor = true;
-=======
   private Boolean use_narrowing_interceptor = true;
->>>>>>> Add use_narrowing_interceptor to app properties
   private Validation validation = new Validation();
   private Map<String, Tester> tester = null;
   private Logger logger = new Logger();
@@ -79,7 +75,7 @@ public class AppProperties {
   private Boolean use_apache_address_strategy = false;
   private Boolean use_apache_address_strategy_https = false;
 
-	public Boolean getUse_apache_address_strategy() {
+  public Boolean getUse_apache_address_strategy() {
     return use_apache_address_strategy;
   }
 
@@ -87,7 +83,7 @@ public class AppProperties {
     this.use_apache_address_strategy = use_apache_address_strategy;
   }
 
-    public Boolean getUse_apache_address_strategy_https() {
+  public Boolean getUse_apache_address_strategy_https() {
     return use_apache_address_strategy_https;
   }
 
@@ -211,8 +207,7 @@ public class AppProperties {
     return client_id_strategy;
   }
 
-  public void setClient_id_strategy(
-    ClientIdStrategyEnum client_id_strategy) {
+  public void setClient_id_strategy(ClientIdStrategyEnum client_id_strategy) {
     this.client_id_strategy = client_id_strategy;
   }
 
@@ -252,8 +247,7 @@ public class AppProperties {
     return allow_override_default_search_params;
   }
 
-  public void setAllow_override_default_search_params(
-    Boolean allow_override_default_search_params) {
+  public void setAllow_override_default_search_params(Boolean allow_override_default_search_params) {
     this.allow_override_default_search_params = allow_override_default_search_params;
   }
 
@@ -261,8 +255,7 @@ public class AppProperties {
     return auto_create_placeholder_reference_targets;
   }
 
-  public void setAuto_create_placeholder_reference_targets(
-    Boolean auto_create_placeholder_reference_targets) {
+  public void setAuto_create_placeholder_reference_targets(Boolean auto_create_placeholder_reference_targets) {
     this.auto_create_placeholder_reference_targets = auto_create_placeholder_reference_targets;
   }
 
@@ -290,28 +283,27 @@ public class AppProperties {
     this.enable_index_missing_fields = enable_index_missing_fields;
   }
 
-	public Boolean getEnable_index_contained_resource() {
-		return enable_index_contained_resource;
-	}
+  public Boolean getEnable_index_contained_resource() {
+    return enable_index_contained_resource;
+  }
 
-	public void setEnable_index_contained_resource(Boolean enable_index_contained_resource) {
-		this.enable_index_contained_resource = enable_index_contained_resource;
-	}
+  public void setEnable_index_contained_resource(Boolean enable_index_contained_resource) {
+    this.enable_index_contained_resource = enable_index_contained_resource;
+  }
 
-	public Boolean getEnable_repository_validating_interceptor() {
-		return enable_repository_validating_interceptor;
-	}
+  public Boolean getEnable_repository_validating_interceptor() {
+    return enable_repository_validating_interceptor;
+  }
 
-	public void setEnable_repository_validating_interceptor(Boolean theEnable_repository_validating_interceptor) {
-		enable_repository_validating_interceptor = theEnable_repository_validating_interceptor;
-	}
+  public void setEnable_repository_validating_interceptor(Boolean theEnable_repository_validating_interceptor) {
+    enable_repository_validating_interceptor = theEnable_repository_validating_interceptor;
+  }
 
-	public Boolean getEnforce_referential_integrity_on_delete() {
+  public Boolean getEnforce_referential_integrity_on_delete() {
     return enforce_referential_integrity_on_delete;
   }
 
-  public void setEnforce_referential_integrity_on_delete(
-    Boolean enforce_referential_integrity_on_delete) {
+  public void setEnforce_referential_integrity_on_delete(Boolean enforce_referential_integrity_on_delete) {
     this.enforce_referential_integrity_on_delete = enforce_referential_integrity_on_delete;
   }
 
@@ -319,8 +311,7 @@ public class AppProperties {
     return enforce_referential_integrity_on_write;
   }
 
-  public void setEnforce_referential_integrity_on_write(
-    Boolean enforce_referential_integrity_on_write) {
+  public void setEnforce_referential_integrity_on_write(Boolean enforce_referential_integrity_on_write) {
     this.enforce_referential_integrity_on_write = enforce_referential_integrity_on_write;
   }
 
@@ -440,13 +431,11 @@ public class AppProperties {
     this.tester = tester;
   }
 
-  public Boolean getNarrative_enabled()
-  {
+  public Boolean getNarrative_enabled() {
     return narrative_enabled;
   }
 
-  public void setNarrative_enabled(Boolean narrative_enabled)
-  {
+  public void setNarrative_enabled(Boolean narrative_enabled) {
     this.narrative_enabled = narrative_enabled;
   }
 
@@ -459,40 +448,46 @@ public class AppProperties {
   }
 
   public NormalizedQuantitySearchLevel getNormalized_quantity_search_level() {
-	return this.normalized_quantity_search_level;
+    return this.normalized_quantity_search_level;
   }
 
   public void setNormalized_quantity_search_level(NormalizedQuantitySearchLevel normalized_quantity_search_level) {
-	this.normalized_quantity_search_level = normalized_quantity_search_level;
+    this.normalized_quantity_search_level = normalized_quantity_search_level;
   }
 
-  public Integer getSearch_coord_core_pool_size() { return search_coord_core_pool_size; }
+  public Integer getSearch_coord_core_pool_size() {
+    return search_coord_core_pool_size;
+  }
 
   public void setSearch_coord_core_pool_size(Integer search_coord_core_pool_size) {
     this.search_coord_core_pool_size = search_coord_core_pool_size;
   }
 
-  public Integer getSearch_coord_max_pool_size() { return search_coord_max_pool_size; }
+  public Integer getSearch_coord_max_pool_size() {
+    return search_coord_max_pool_size;
+  }
 
   public void setSearch_coord_max_pool_size(Integer search_coord_max_pool_size) {
     this.search_coord_max_pool_size = search_coord_max_pool_size;
   }
 
-  public Integer getSearch_coord_queue_capacity() { return search_coord_queue_capacity; }
-
-  public void setSearch_coord_queue_capacity(Integer search_coord_queue_capacity) {
-  	 this.search_coord_queue_capacity = search_coord_queue_capacity;
+  public Integer getSearch_coord_queue_capacity() {
+    return search_coord_queue_capacity;
   }
 
-	public boolean getInstall_transitive_ig_dependencies() {
-		return install_transitive_ig_dependencies;
-	}
+  public void setSearch_coord_queue_capacity(Integer search_coord_queue_capacity) {
+    this.search_coord_queue_capacity = search_coord_queue_capacity;
+  }
 
-	public void setInstall_transitive_ig_dependencies(boolean install_transitive_ig_dependencies) {
-		this.install_transitive_ig_dependencies = install_transitive_ig_dependencies;
-	}
+  public boolean getInstall_transitive_ig_dependencies() {
+    return install_transitive_ig_dependencies;
+  }
 
-	public static class Cors {
+  public void setInstall_transitive_ig_dependencies(boolean install_transitive_ig_dependencies) {
+    this.install_transitive_ig_dependencies = install_transitive_ig_dependencies;
+  }
+
+  public static class Cors {
     private Boolean allow_Credentials = true;
     private List<String> allowed_origin = ImmutableList.of("*");
 
@@ -511,7 +506,6 @@ public class AppProperties {
     public void setAllow_Credentials(Boolean allow_Credentials) {
       this.allow_Credentials = allow_Credentials;
     }
-
 
   }
 
@@ -555,7 +549,6 @@ public class AppProperties {
     }
   }
 
-
   public static class Tester {
 
     private String name;
@@ -596,8 +589,7 @@ public class AppProperties {
     }
   }
 
-  public static class ImplementationGuide
-  {
+  public static class ImplementationGuide {
     private String url;
     private String name;
     private String version;
@@ -661,6 +653,7 @@ public class AppProperties {
     public void setPartitioning_include_in_search_hashes(Boolean partitioning_include_in_search_hashes) {
       this.partitioning_include_in_search_hashes = partitioning_include_in_search_hashes;
     }
+
     public Boolean getAllow_references_across_partitions() {
       return allow_references_across_partitions;
     }
@@ -699,7 +692,6 @@ public class AppProperties {
     public void setEmail(Email email) {
       this.email = email;
     }
-
 
     public static class Email {
       public String getFrom() {
