@@ -1,12 +1,19 @@
 package ca.uhn.fhir.jpa.starter;
 
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.rest.client.api.IGenericClient;
+import ca.uhn.fhir.rest.client.interceptor.BearerTokenAuthInterceptor;
+import ca.uhn.fhir.rest.server.util.ITestingUiClientFactory;
 import ca.uhn.fhir.to.FhirTesterMvcConfig;
 import ca.uhn.fhir.to.TesterConfig;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-//@formatter:off
 /**
  * This spring config file configures the web testing module. It serves two
  * purposes:
@@ -19,36 +26,49 @@ import org.springframework.context.annotation.Import;
 @Import(FhirTesterMvcConfig.class)
 public class FhirTesterConfig {
 
-	/**
-	 * This bean tells the testing webpage which servers it should configure itself
-	 * to communicate with. In this example we configure it to talk to the local
-	 * server, as well as one public server. If you are creating a project to
-	 * deploy somewhere else, you might choose to only put your own server's
-	 * address here.
-	 *
-	 * Note the use of the ${serverBase} variable below. This will be replaced with
-	 * the base URL as reported by the server itself. Often for a simple Tomcat
-	 * (or other container) installation, this will end up being something
-	 * like "http://localhost:8080/hapi-fhir-jpaserver-starter". If you are
-	 * deploying your server to a place with a fully qualified domain name,
-	 * you might want to use that instead of using the variable.
-	 */
+  /**
+   * This bean tells the testing webpage which servers it should configure itself
+   * to communicate with. In this example we configure it to talk to the local
+   * server, as well as one public server. If you are creating a project to deploy
+   * somewhere else, you might choose to only put your own server's address here.
+   *
+   * Note the use of the ${serverBase} variable below. This will be replaced with
+   * the base URL as reported by the server itself. Often for a simple Tomcat (or
+   * other container) installation, this will end up being something like
+   * "http://localhost:8080/hapi-fhir-jpaserver-starter". If you are deploying
+   * your server to a place with a fully qualified domain name, you might want to
+   * use that instead of using the variable.
+   */
+
+  @Value("${hapi.fhir.admin_token}")
+  private String adminToken;
+
   @Bean
   public TesterConfig testerConfig(AppProperties appProperties) {
     TesterConfig retVal = new TesterConfig();
     appProperties.getTester().entrySet().stream().forEach(t -> {
-      retVal
-        .addServer()
-        .withId(t.getKey())
-        .withFhirVersion(t.getValue().getFhir_version())
-        .withBaseUrl(t.getValue().getServer_address())
-        .withName(t.getValue().getName());
-      retVal.setRefuseToFetchThirdPartyUrls(
-        t.getValue().getRefuse_to_fetch_third_party_urls());
+      retVal.addServer().withId(t.getKey()).withFhirVersion(t.getValue().getFhir_version())
+          .withBaseUrl(t.getValue().getServer_address()).withName(t.getValue().getName());
+      retVal.setRefuseToFetchThirdPartyUrls(t.getValue().getRefuse_to_fetch_third_party_urls());
 
     });
+    ITestingUiClientFactory clientFactory = new ITestingUiClientFactory() {
+
+      @Override
+      public IGenericClient newClient(FhirContext theFhirContext, HttpServletRequest theRequest,
+          String theServerBaseUrl) {
+        // Create a client
+        IGenericClient client = theFhirContext.newRestfulGenericClient(theServerBaseUrl);
+
+        // Register an interceptor which adds credentials
+        client.registerInterceptor(new BearerTokenAuthInterceptor(adminToken));
+        return client;
+      }
+
+    };
+    retVal.setClientFactory(clientFactory);
+
     return retVal;
   }
 
 }
-//@formatter:on
