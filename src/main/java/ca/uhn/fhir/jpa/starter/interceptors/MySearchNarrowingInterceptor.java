@@ -49,7 +49,11 @@ public class MySearchNarrowingInterceptor extends SearchNarrowingInterceptor {
 
       // Find Organizations for Pracatitioner
       IBundleProvider rolesForPractitioner = practitionerRoleDao
-            .search(new SearchParameterMap().add(PractitionerRole.SP_PRACTITIONER, new ReferenceParam(practitionerId)));
+            .search(new SearchParameterMap().add(PractitionerRole.SP_PRACTITIONER, new ReferenceParam(practitionerId))
+                  // custom SearchParameter on extension
+                  // http://arkhn.com/fhir/cohort360/StructureDefinition/permission-status)
+                  // TODO: https://github.com/arkhn/jpaltime/issues/11
+                  .add("permission-status", new TokenParam("active")));
       List<String> allowedOrganizations = rolesForPractitioner.getResources(0, rolesForPractitioner.size()).stream()
             .map(PractitionerRole.class::cast).map(p -> p.getOrganization().getReference())
             .collect(Collectors.toList());
