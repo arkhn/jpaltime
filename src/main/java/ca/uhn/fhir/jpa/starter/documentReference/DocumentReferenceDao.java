@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.transaction.Transactional;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.search.backend.elasticsearch.ElasticsearchExtension;
 import org.hibernate.search.engine.search.predicate.dsl.PredicateFinalStep;
 import org.hibernate.search.engine.search.predicate.dsl.SearchPredicateFactory;
@@ -30,12 +31,12 @@ public class DocumentReferenceDao extends BaseHapiFhirResourceDao<DocumentRefere
     }
 
     private String buildExcludeNegationsRegex(String thePattern) {
-        /* Builds a regex that matches negations of the pattern.
-         * For instance, if the pattern is `X`, the regex generated
-         * here will match `pas de signe de X`.
+        /*
+         * Builds a regex that matches negations of the pattern. For instance, if the
+         * pattern is `X`, the regex generated here will match `pas de signe de X`.
          */
         // TODO improve neg regex creation
-        String stopWords = "(le|la|les|des|du) ";  // TODO add n'\w pas
+        String stopWords = "(le|la|les|des|du) ";
         String[] absence = { "pas de signe", "pas", "non", "sans", "absence" };
         String of = makeOptionalRegexPattern("(de|d\\') ");
         String[] absenceOf = Arrays.stream(absence).map(prefix -> prefix + " " + of).toArray(String[]::new);
@@ -51,16 +52,19 @@ public class DocumentReferenceDao extends BaseHapiFhirResourceDao<DocumentRefere
 
         SearchPredicateFactory spf = searchSession.scope(ResourceTable.class).predicate();
 
+        String normalizedPattern = StringUtils.stripAccents(thePattern).toLowerCase();
+
         PredicateFinalStep finishedQuery = spf.bool(b -> {
             String contentField = "myContentText";
-            String regexpQuery = "{'regexp':{'" + contentField + "':{'value':'.*" + thePattern + ".*'}}}";
+            String regexpQuery = "{'regexp':{'" + contentField + "':{'value':'.*" + normalizedPattern + ".*'}}}";
             b.must(spf.extension(ElasticsearchExtension.get()).fromJson(regexpQuery));
             String resourceTypeField = "myResourceType";
             String resourceTypeQuery = "{'match':{'" + resourceTypeField + "':{'query': 'DocumentReference' }}}";
             b.must(spf.extension(ElasticsearchExtension.get()).fromJson(resourceTypeQuery));
             if (theExcludeNegations) {
-                String excludeNegPattern = buildExcludeNegationsRegex(thePattern);
-                String excludeNegRegexpQuery = "{'regexp':{'" + contentField + "':{'value':'.*" + excludeNegPattern + ".*'}}}";
+                String excludeNegPattern = buildExcludeNegationsRegex(normalizedPattern);
+                String excludeNegRegexpQuery = "{'regexp':{'" + contentField + "':{'value':'.*" + excludeNegPattern
+                        + ".*'}}}";
                 b.mustNot(spf.extension(ElasticsearchExtension.get()).fromJson(excludeNegRegexpQuery));
             }
         });
