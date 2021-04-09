@@ -27,11 +27,15 @@ public class MySearchNarrowingInterceptor extends SearchNarrowingInterceptor {
    IFhirResourceDao<Encounter> encounterDao;
    IFhirResourceDao<PractitionerRole> practitionerRoleDao;
    IFhirResourceDao<Consent> consentDao;
+   List<String> patientRelatedResources;
 
    public MySearchNarrowingInterceptor(DaoRegistry daoRegistry) {
       encounterDao = daoRegistry.getResourceDao("Encounter");
       practitionerRoleDao = daoRegistry.getResourceDao("PractitionerRole");
       consentDao = daoRegistry.getResourceDao("Consent");
+      patientRelatedResources = Arrays.asList("Claim", "DiagnosticReport", "DocumentReference", "Encounter",
+            "Observation", "Procedure");
+
    }
 
    @Value("${hapi.fhir.admin_token}")
@@ -39,9 +43,6 @@ public class MySearchNarrowingInterceptor extends SearchNarrowingInterceptor {
 
    @Override
    protected AuthorizedList buildAuthorizedList(RequestDetails theRequestDetails) {
-      // In this basic example we have two hardcoded bearer tokens,
-      // one which is for a user that has access to one patient, and
-      // another that has full access.
       String authHeader = theRequestDetails.getHeader("Authorization");
       if (authHeader == null || authHeader.isEmpty()) {
          throw new AuthenticationException("Missing authorization token");
@@ -49,6 +50,12 @@ public class MySearchNarrowingInterceptor extends SearchNarrowingInterceptor {
          // This user has access to everything
          return new AuthorizedList();
       }
+
+      if (!(patientRelatedResources.contains(theRequestDetails.getResourceName())
+            || theRequestDetails.getResourceName().equals("Patient"))) {
+         return new AuthorizedList();
+      }
+
       String practitionerId = String.format("Practitioner/%s", authHeader);
 
       // Find Organizations for Pracatitioner
@@ -85,9 +92,6 @@ public class MySearchNarrowingInterceptor extends SearchNarrowingInterceptor {
       if (allowedPatientRefs.isEmpty()) {
          throw new AuthenticationException("Don't have access to any patient");
       }
-
-      List<String> patientRelatedResources = Arrays.asList("Claim", "DiagnosticReport", "DocumentReference",
-            "Encounter", "Observation", "Procedure");
 
       // Filter requests on Patients
       if (theRequestDetails.getResourceName().equals("Patient")) {
