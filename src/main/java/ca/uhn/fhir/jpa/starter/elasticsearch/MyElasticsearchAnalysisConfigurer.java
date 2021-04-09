@@ -52,7 +52,8 @@ public class MyElasticsearchAnalysisConfigurer implements ElasticsearchAnalysisC
 		// NOTE change hapi standardAnalyzer to be able to use regex
 		// This breaks the classic fulltext search so we'll need to find another way
 		theConfigCtx.analyzer("standardAnalyzer").custom()
-			.tokenizer("keyword");
+			.tokenizer("keyword")
+			.tokenFilters("lowercase", "asciifolding");
 
 		theConfigCtx.analyzer("exactAnalyzer")
 			.custom()
