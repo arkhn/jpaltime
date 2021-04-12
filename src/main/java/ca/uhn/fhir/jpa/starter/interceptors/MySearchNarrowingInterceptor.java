@@ -9,6 +9,7 @@ import org.hl7.fhir.r4.model.Consent;
 import org.hl7.fhir.r4.model.Encounter;
 import org.hl7.fhir.r4.model.PractitionerRole;
 import org.hl7.fhir.r4.model.Consent.ConsentState;
+import org.springframework.beans.factory.annotation.Value;
 
 import ca.uhn.fhir.jpa.api.dao.DaoRegistry;
 import ca.uhn.fhir.jpa.api.dao.IFhirResourceDao;
@@ -33,6 +34,9 @@ public class MySearchNarrowingInterceptor extends SearchNarrowingInterceptor {
       consentDao = daoRegistry.getResourceDao("Consent");
    }
 
+   @Value("${hapi.fhir.admin_token}")
+   private String adminToken;
+
    @Override
    protected AuthorizedList buildAuthorizedList(RequestDetails theRequestDetails) {
       // In this basic example we have two hardcoded bearer tokens,
@@ -41,7 +45,7 @@ public class MySearchNarrowingInterceptor extends SearchNarrowingInterceptor {
       String authHeader = theRequestDetails.getHeader("Authorization");
       if (authHeader == null || authHeader.isEmpty()) {
          throw new AuthenticationException("Missing authorization token");
-      } else if (authHeader.equals("Bearer adminToken")) {
+      } else if (authHeader.equals(String.format("Bearer %s", adminToken))) {
          // This user has access to everything
          return new AuthorizedList();
       }

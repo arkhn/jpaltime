@@ -15,8 +15,7 @@ spring:
           enabled: true
           backend:
             type: elasticsearch
-            analysis:
-              configurer: ca.uhn.fhir.jpa.search.elastic.HapiElasticsearchAnalysisConfigurer
+            analysis.configurer: ca.uhn.fhir.jpa.starter.elasticsearch.MyElasticsearchAnalysisConfigurer
   #      hibernate.dialect: org.hibernate.dialect.h2dialect
   #      hibernate.hbm2ddl.auto: update
   #      hibernate.jdbc.batch_size: 20
@@ -40,6 +39,7 @@ spring:
 hapi:
   fhir:
     server_address: "http://localhost:8080/hapi/fhir"
+    admin_token: adminToken
     ### enable to use the ApacheProxyAddressStrategy which uses X-Forwarded-* headers
     ### to determine the FHIR server address
     #   use_apache_address_strategy: false
