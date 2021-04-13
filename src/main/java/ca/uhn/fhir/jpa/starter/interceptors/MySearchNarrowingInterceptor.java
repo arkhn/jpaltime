@@ -47,8 +47,9 @@ public class MySearchNarrowingInterceptor extends SearchNarrowingInterceptor {
          return new AuthorizedList();
       }
 
-      if (!(patientRelatedResources.contains(theRequestDetails.getResourceName())
-            || theRequestDetails.getResourceName().equals("Patient"))) {
+      // Resources that aren't Patients or in patientRelatedResources are not protected
+      if (!patientRelatedResources.contains(theRequestDetails.getResourceName())
+            && !theRequestDetails.getResourceName().equals("Patient")) {
          return new AuthorizedList();
       }
 
