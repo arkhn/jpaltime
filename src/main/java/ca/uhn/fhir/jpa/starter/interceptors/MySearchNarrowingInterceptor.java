@@ -9,7 +9,6 @@ import org.hl7.fhir.r4.model.Consent;
 import org.hl7.fhir.r4.model.Encounter;
 import org.hl7.fhir.r4.model.PractitionerRole;
 import org.hl7.fhir.r4.model.Consent.ConsentState;
-import org.springframework.beans.factory.annotation.Value;
 
 import ca.uhn.fhir.jpa.api.dao.DaoRegistry;
 import ca.uhn.fhir.jpa.api.dao.IFhirResourceDao;
@@ -28,22 +27,23 @@ public class MySearchNarrowingInterceptor extends SearchNarrowingInterceptor {
    IFhirResourceDao<PractitionerRole> practitionerRoleDao;
    IFhirResourceDao<Consent> consentDao;
    List<String> patientRelatedResources;
+   String adminToken;
 
-   public MySearchNarrowingInterceptor(DaoRegistry daoRegistry) {
+   public MySearchNarrowingInterceptor(DaoRegistry daoRegistry, String adminToken) {
       encounterDao = daoRegistry.getResourceDao("Encounter");
       practitionerRoleDao = daoRegistry.getResourceDao("PractitionerRole");
       consentDao = daoRegistry.getResourceDao("Consent");
       patientRelatedResources = Arrays.asList("Claim", "DiagnosticReport", "DocumentReference", "Encounter",
             "Observation", "Procedure");
 
-   }
+      this.adminToken = adminToken;
 
-   @Value("${hapi.fhir.admin_token}")
-   private String adminToken;
+   }
 
    @Override
    protected AuthorizedList buildAuthorizedList(RequestDetails theRequestDetails) {
       String authHeader = theRequestDetails.getHeader("Authorization");
+
       if (authHeader == null || authHeader.isEmpty()) {
          throw new AuthenticationException("Missing authorization token");
       } else if (authHeader.equals(String.format("Bearer %s", adminToken))) {
@@ -51,7 +51,8 @@ public class MySearchNarrowingInterceptor extends SearchNarrowingInterceptor {
          return new AuthorizedList();
       }
 
-      // Resources that aren't Patients or in patientRelatedResources are not protected
+      // Resources that aren't Patients or in patientRelatedResources are not
+      // protected
       if (!patientRelatedResources.contains(theRequestDetails.getResourceName())
             && !theRequestDetails.getResourceName().equals("Patient")) {
          return new AuthorizedList();
