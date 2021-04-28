@@ -75,6 +75,8 @@ public class AppProperties {
   private Boolean use_apache_address_strategy = false;
   private Boolean use_apache_address_strategy_https = false;
 
+  private String admin_token = "";
+
   public Boolean getUse_apache_address_strategy() {
     return use_apache_address_strategy;
   }
@@ -485,6 +487,14 @@ public class AppProperties {
 
   public void setInstall_transitive_ig_dependencies(boolean install_transitive_ig_dependencies) {
     this.install_transitive_ig_dependencies = install_transitive_ig_dependencies;
+  }
+
+  public String getAdmin_token() {
+    return this.admin_token;
+  }
+
+  public void setAdmin_token(String admin_token) {
+    this.admin_token = admin_token;
   }
 
   public static class Cors {
