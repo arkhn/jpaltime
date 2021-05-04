@@ -7,11 +7,19 @@ RUN mvn -ntp dependency:go-offline
 COPY src/ /tmp/hapi-fhir-jpaserver-starter/src/
 RUN mvn clean package spring-boot:repackage -Pboot
 
+FROM alpine:3.13 as hapi-fhir-cli
+
+WORKDIR /tmp
+
+RUN apk add wget tar
+RUN wget -4 --no-verbose https://github.com/hapifhir/hapi-fhir/releases/download/v5.3.0/hapi-fhir-5.3.0-cli.tar.bz2
+RUN tar xjf hapi-fhir-5.3.0-cli.tar.bz2
 
 #FINAL IMAGE
 FROM gcr.io/distroless/java:11
 
 COPY --from=build-hapi /tmp/hapi-fhir-jpaserver-starter/target/hapi.war /app/hapi.war
+COPY --from=hapi-fhir-cli /tmp/hapi-fhir-cli.jar /app/hapi-fhir-cli.jar
 
 EXPOSE 8080
 
