@@ -156,6 +156,7 @@ public class BaseJpaRestfulServer extends RestfulServer {
      */
 
     FhirVersionEnum fhirVersion = fhirSystemDao.getContext().getVersion().getVersion();
+    IValidationSupport validationSupport = myApplicationContext.getBean(IValidationSupport.class);
     if (fhirVersion == FhirVersionEnum.DSTU2) {
 
       JpaConformanceProviderDstu2 confProvider = new JpaConformanceProviderDstu2(this, fhirSystemDao, daoConfig);
@@ -340,7 +341,8 @@ public class BaseJpaRestfulServer extends RestfulServer {
     }
 
     if (appProperties.getUse_narrowing_interceptor()) {
-      MySearchNarrowingInterceptor interceptor = new MySearchNarrowingInterceptor(daoRegistry, appProperties.getAdmin_token());
+      MySearchNarrowingInterceptor interceptor = new MySearchNarrowingInterceptor(daoRegistry,
+          appProperties.getAdmin_token());
       registerInterceptor(interceptor);
     }
 

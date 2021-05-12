@@ -21,20 +21,21 @@ import org.springframework.core.io.Resource;
 
 @Configuration
 @Conditional(MdmConfigCondition.class)
-@Import({MdmConsumerConfig.class, MdmSubmitterConfig.class})
+@Import({ MdmConsumerConfig.class, MdmSubmitterConfig.class })
 public class MdmConfig {
 
-	@Bean
-	MdmRuleValidator mdmRuleValidator(FhirContext theFhirContext, ISearchParamRegistry theSearchParamRegistry) {
-		return new MdmRuleValidator(theFhirContext, theSearchParamRegistry);
-	}
+  @Bean
+  MdmRuleValidator mdmRuleValidator(FhirContext theFhirContext, ISearchParamRegistry theSearchParamRegistry) {
+    return new MdmRuleValidator(theFhirContext, theSearchParamRegistry);
+  }
 
-	@Bean
-	IMdmSettings mdmSettings(@Autowired MdmRuleValidator theMdmRuleValidator, AppProperties appProperties) throws IOException {
-		DefaultResourceLoader resourceLoader = new DefaultResourceLoader();
-		Resource resource = resourceLoader.getResource("mdm-rules.json");
-		String json = IOUtils.toString(resource.getInputStream(), Charsets.UTF_8);
-		return new MdmSettings(theMdmRuleValidator).setEnabled(appProperties.getMdm_enabled()).setScriptText(json);
-	}
+  @Bean
+  IMdmSettings mdmSettings(@Autowired MdmRuleValidator theMdmRuleValidator, AppProperties appProperties)
+      throws IOException {
+    DefaultResourceLoader resourceLoader = new DefaultResourceLoader();
+    Resource resource = resourceLoader.getResource("mdm-rules.json");
+    String json = IOUtils.toString(resource.getInputStream(), Charsets.UTF_8);
+    return new MdmSettings(theMdmRuleValidator).setEnabled(appProperties.getMdm_enabled()).setScriptText(json);
+  }
 
 }
