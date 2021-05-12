@@ -2,6 +2,7 @@ package ca.uhn.fhir.jpa.starter;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.context.FhirVersionEnum;
+import ca.uhn.fhir.context.support.IValidationSupport;
 import ca.uhn.fhir.cql.common.provider.CqlProviderLoader;
 import ca.uhn.fhir.interceptor.api.IInterceptorBroadcaster;
 import ca.uhn.fhir.interceptor.api.IInterceptorService;
@@ -9,17 +10,17 @@ import ca.uhn.fhir.jpa.api.config.DaoConfig;
 import ca.uhn.fhir.jpa.api.dao.DaoRegistry;
 import ca.uhn.fhir.jpa.api.dao.IFhirSystemDao;
 import ca.uhn.fhir.jpa.binstore.BinaryStorageInterceptor;
-import ca.uhn.fhir.jpa.bulk.provider.BulkDataExportProvider;
+import ca.uhn.fhir.jpa.bulk.export.provider.BulkDataExportProvider;
 import ca.uhn.fhir.jpa.interceptor.CascadingDeleteInterceptor;
 import ca.uhn.fhir.jpa.packages.IPackageInstallerSvc;
 import ca.uhn.fhir.jpa.packages.PackageInstallationSpec;
 import ca.uhn.fhir.jpa.partition.PartitionManagementProvider;
 import ca.uhn.fhir.jpa.provider.*;
 import ca.uhn.fhir.jpa.provider.dstu3.JpaConformanceProviderDstu3;
-import ca.uhn.fhir.jpa.provider.r4.JpaConformanceProviderR4;
-import ca.uhn.fhir.jpa.provider.r5.JpaConformanceProviderR5;
+import ca.uhn.fhir.jpa.provider.r4.JpaSystemProviderR4;
+import ca.uhn.fhir.jpa.provider.r5.JpaSystemProviderR5;
 import ca.uhn.fhir.jpa.search.DatabaseBackedPagingProvider;
-import ca.uhn.fhir.jpa.searchparam.registry.ISearchParamRegistry;
+import ca.uhn.fhir.rest.server.util.ISearchParamRegistry;
 import ca.uhn.fhir.jpa.starter.interceptors.MyConsentService;
 import ca.uhn.fhir.jpa.starter.interceptors.MySearchNarrowingInterceptor;
 import ca.uhn.fhir.jpa.subscription.util.SubscriptionDebugLogInterceptor;
@@ -148,6 +149,7 @@ public class BaseJpaRestfulServer extends RestfulServer {
      */
 
     FhirVersionEnum fhirVersion = fhirSystemDao.getContext().getVersion().getVersion();
+    IValidationSupport validationSupport = myApplicationContext.getBean(IValidationSupport.class);
     if (fhirVersion == FhirVersionEnum.DSTU2) {
 
       JpaConformanceProviderDstu2 confProvider = new JpaConformanceProviderDstu2(this, fhirSystemDao, daoConfig);
@@ -161,15 +163,21 @@ public class BaseJpaRestfulServer extends RestfulServer {
         confProvider.setImplementationDescription("HAPI FHIR DSTU3 Server");
         setServerConformanceProvider(confProvider);
       } else if (fhirVersion == FhirVersionEnum.R4) {
-
-        JpaConformanceProviderR4 confProvider = new JpaConformanceProviderR4(this, fhirSystemDao, daoConfig,
-            searchParamRegistry);
+        JpaSystemProviderR4 systemProvider = new JpaSystemProviderR4();
+        systemProvider.setContext(fhirSystemDao.getContext());
+        systemProvider.setDao(fhirSystemDao);
+        JpaCapabilityStatementProvider confProvider = new JpaCapabilityStatementProvider(this, fhirSystemDao,
+            myApplicationContext.getBean(DaoConfig.class), myApplicationContext.getBean(ISearchParamRegistry.class),
+            validationSupport);
         confProvider.setImplementationDescription("HAPI FHIR R4 Server");
         setServerConformanceProvider(confProvider);
       } else if (fhirVersion == FhirVersionEnum.R5) {
-
-        JpaConformanceProviderR5 confProvider = new JpaConformanceProviderR5(this, fhirSystemDao, daoConfig,
-            searchParamRegistry);
+        JpaSystemProviderR5 systemProvider = new JpaSystemProviderR5();
+        systemProvider.setContext(fhirSystemDao.getContext());
+        systemProvider.setDao(fhirSystemDao);
+        JpaCapabilityStatementProvider confProvider = new JpaCapabilityStatementProvider(this, fhirSystemDao,
+            myApplicationContext.getBean(DaoConfig.class), myApplicationContext.getBean(ISearchParamRegistry.class),
+            validationSupport);
         confProvider.setImplementationDescription("HAPI FHIR R5 Server");
         setServerConformanceProvider(confProvider);
       } else {
@@ -332,7 +340,8 @@ public class BaseJpaRestfulServer extends RestfulServer {
     }
 
     if (appProperties.getUse_narrowing_interceptor()) {
-      MySearchNarrowingInterceptor interceptor = new MySearchNarrowingInterceptor(daoRegistry, appProperties.getAdmin_token());
+      MySearchNarrowingInterceptor interceptor = new MySearchNarrowingInterceptor(daoRegistry,
+          appProperties.getAdmin_token());
       registerInterceptor(interceptor);
     }
 
