@@ -39,6 +39,10 @@ import ca.uhn.fhir.rest.param.StringParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Overrides the CRUD operations to use the custom index. Implements searching
+ * through that index.
+ */
 public class ExtendedDocumentReferenceResourceProvider extends DocumentReferenceResourceProvider {
 
     private static final String INDEX_NAME = "document-reference-content";
@@ -48,6 +52,12 @@ public class ExtendedDocumentReferenceResourceProvider extends DocumentReference
 
     private static final Logger LOG = LoggerFactory.getLogger(IndexCreationEventListener.class);
 
+    /**
+     * Indexes the document's attachment data. Ignores the version.
+     *
+     * @param theResource
+     * @throws IOException
+     */
     protected static void indexDocument(DocumentReference theResource) throws IOException {
         RestHighLevelClient client = ElasticsearchClientBuilder.build();
 
@@ -68,16 +78,26 @@ public class ExtendedDocumentReferenceResourceProvider extends DocumentReference
 
     }
 
+    /**
+     * Searches through the indexed data.
+     *
+     * @param searchString
+     * @return
+     * @throws IOException
+     */
     protected static List<String> searchDocuments(String searchString) throws IOException {
         RestHighLevelClient client = ElasticsearchClientBuilder.build();
         List<String> results = new ArrayList<String>();
 
+        // 1. Search the indexed data for matching document. Retrieve a list of Document
+        // IDs.
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
         sourceBuilder.query(QueryBuilders.termQuery(CONTENT_FIELD_NAME, searchString));
 
         SearchRequest searchRequest = new SearchRequest(INDEX_NAME).source(sourceBuilder);
         SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
 
+        // 2. Retrieve the list of matching documents by their ID.
         for (SearchHit hit : searchResponse.getHits()) {
             results.add(hit.getSourceAsMap().get(ID_FIELD_NAME).toString());
         }

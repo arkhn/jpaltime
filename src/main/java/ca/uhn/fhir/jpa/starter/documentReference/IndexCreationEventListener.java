@@ -15,6 +15,10 @@ import org.elasticsearch.common.xcontent.XContentFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Creates an ES index for attachment data after Spring initialization, without
+ * Hibernate.
+ */
 @Component
 public class IndexCreationEventListener {
 

@@ -11,6 +11,9 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestClientBuilder.HttpClientConfigCallback;
 
+/**
+ * Builds an ES client.
+ */
 public class ElasticsearchClientBuilder {
     public static RestHighLevelClient build() {
         final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
