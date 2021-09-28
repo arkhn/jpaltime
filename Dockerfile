@@ -11,7 +11,7 @@ RUN mvn clean install -DskipTests
 FROM build-hapi AS build-distroless
 RUN mvn package spring-boot:repackage -Pboot
 RUN mkdir /app && \
-    cp /tmp/hapi-fhir-jpaserver-starter/target/ROOT.war /app/main.war
+    cp /tmp/hapi-fhir-jpaserver-starter/target/hapi.war /app/main.war
 
 FROM alpine:3.13 as hapi-fhir-cli
 
