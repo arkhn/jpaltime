@@ -2,14 +2,14 @@ package ca.uhn.fhir.jpa.starter;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
-import ca.uhn.fhir.rest.client.interceptor.BearerTokenAuthInterceptor;
+import ca.uhn.fhir.rest.client.interceptor.BasicAuthInterceptor;
 import ca.uhn.fhir.rest.server.util.ITestingUiClientFactory;
 import ca.uhn.fhir.to.FhirTesterMvcConfig;
 import ca.uhn.fhir.to.TesterConfig;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.springframework.beans.factory.annotation.Value;
+import org.apache.commons.codec.binary.Base64;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -39,10 +39,6 @@ public class FhirTesterConfig {
    * your server to a place with a fully qualified domain name, you might want to
    * use that instead of using the variable.
    */
-
-  @Value("${hapi.fhir.admin_token}")
-  private String adminToken;
-
   @Bean
   public TesterConfig testerConfig(AppProperties appProperties) {
     TesterConfig retVal = new TesterConfig();
@@ -60,8 +56,15 @@ public class FhirTesterConfig {
         // Create a client
         IGenericClient client = theFhirContext.newRestfulGenericClient(theServerBaseUrl);
 
+        // Decode the Authorization header if present
+        String authHeader = theRequest.getHeader("Authorization");
+        if (authHeader != null) {
+          String base64Credentials = authHeader.substring("Basic ".length());
+          String credentials = new String(Base64.decodeBase64(base64Credentials));
+          client.registerInterceptor(new BasicAuthInterceptor(credentials));
+        }
+
         // Register an interceptor which adds credentials
-        client.registerInterceptor(new BearerTokenAuthInterceptor(adminToken));
         return client;
       }
 
