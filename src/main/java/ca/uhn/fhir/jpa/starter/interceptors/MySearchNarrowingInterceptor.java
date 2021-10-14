@@ -27,17 +27,13 @@ public class MySearchNarrowingInterceptor extends SearchNarrowingInterceptor {
    IFhirResourceDao<PractitionerRole> practitionerRoleDao;
    IFhirResourceDao<Consent> consentDao;
    List<String> patientRelatedResources;
-   String adminToken;
 
-   public MySearchNarrowingInterceptor(DaoRegistry daoRegistry, String adminToken) {
+   public MySearchNarrowingInterceptor(DaoRegistry daoRegistry) {
       encounterDao = daoRegistry.getResourceDao("Encounter");
       practitionerRoleDao = daoRegistry.getResourceDao("PractitionerRole");
       consentDao = daoRegistry.getResourceDao("Consent");
       patientRelatedResources = Arrays.asList("Claim", "DiagnosticReport", "DocumentReference", "Encounter",
             "Observation", "Procedure");
-
-      this.adminToken = adminToken;
-
    }
 
    @Override
@@ -46,9 +42,6 @@ public class MySearchNarrowingInterceptor extends SearchNarrowingInterceptor {
 
       if (authHeader == null || authHeader.isEmpty()) {
          throw new AuthenticationException("Missing authorization token");
-      } else if (authHeader.equals(String.format("Bearer %s", adminToken))) {
-         // This user has access to everything
-         return new AuthorizedList();
       }
 
       // Resources that aren't Patients or in patientRelatedResources are not
