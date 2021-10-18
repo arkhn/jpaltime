@@ -49,11 +49,9 @@ public class MyElasticsearchAnalysisConfigurer implements ElasticsearchAnalysisC
 			.param("min_gram", "3")
 			.param("max_gram", "20");
 
-		// NOTE change hapi standardAnalyzer to be able to use regex
-		// This breaks the classic fulltext search so we'll need to find another way
 		theConfigCtx.analyzer("standardAnalyzer").custom()
-			.tokenizer("keyword")
-			.tokenFilters("lowercase", "asciifolding");
+			.tokenizer("standard")
+			.tokenFilters("lowercase");
 
 		theConfigCtx.analyzer("exactAnalyzer")
 			.custom()
