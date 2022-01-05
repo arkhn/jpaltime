@@ -3,6 +3,7 @@ package ca.uhn.fhir.jpa.starter;
 import ca.uhn.fhir.context.ConfigurationException;
 import ca.uhn.fhir.jpa.api.dao.IFhirResourceDao;
 import ca.uhn.fhir.jpa.config.BaseJavaConfigR4;
+import ca.uhn.fhir.jpa.model.config.PartitionSettings;
 import ca.uhn.fhir.jpa.search.DatabaseBackedPagingProvider;
 import ca.uhn.fhir.jpa.search.lastn.ElasticsearchSvcImpl;
 import ca.uhn.fhir.jpa.starter.annotations.OnR4Condition;
@@ -12,6 +13,7 @@ import ca.uhn.fhir.jpa.starter.documentReference.RegexDocumentReferenceResourceP
 
 import org.springframework.beans.factory.annotation.Autowire;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.annotation.*;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.orm.jpa.JpaTransactionManager;
@@ -39,15 +41,15 @@ public class FhirServerConfigR4 extends BaseJavaConfigR4 {
 
   @PostConstruct
   public void initSettings() {
-    if(appProperties.getSearch_coord_core_pool_size() != null) {
-		 setSearchCoordCorePoolSize(appProperties.getSearch_coord_core_pool_size());
-	 }
-	  if(appProperties.getSearch_coord_max_pool_size() != null) {
-		  setSearchCoordMaxPoolSize(appProperties.getSearch_coord_max_pool_size());
-	  }
-	  if(appProperties.getSearch_coord_queue_capacity() != null) {
-		  setSearchCoordQueueCapacity(appProperties.getSearch_coord_queue_capacity());
-	  }
+    if (appProperties.getSearch_coord_core_pool_size() != null) {
+      setSearchCoordCorePoolSize(appProperties.getSearch_coord_core_pool_size());
+    }
+    if (appProperties.getSearch_coord_max_pool_size() != null) {
+      setSearchCoordMaxPoolSize(appProperties.getSearch_coord_max_pool_size());
+    }
+    if (appProperties.getSearch_coord_queue_capacity() != null) {
+      setSearchCoordQueueCapacity(appProperties.getSearch_coord_queue_capacity());
+    }
   }
 
   @Override
@@ -63,8 +65,9 @@ public class FhirServerConfigR4 extends BaseJavaConfigR4 {
 
   @Override
   @Bean()
-  public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
-    LocalContainerEntityManagerFactoryBean retVal = super.entityManagerFactory();
+  public LocalContainerEntityManagerFactoryBean entityManagerFactory(
+      ConfigurableListableBeanFactory myConfigurableListableBeanFactory) {
+    LocalContainerEntityManagerFactoryBean retVal = super.entityManagerFactory(myConfigurableListableBeanFactory);
     retVal.setPersistenceUnitName("HAPI_PU");
 
     try {
@@ -73,7 +76,8 @@ public class FhirServerConfigR4 extends BaseJavaConfigR4 {
       throw new ConfigurationException("Could not set the data source due to a configuration issue", e);
     }
 
-    retVal.setJpaProperties(EnvironmentHelper.getHibernateProperties(configurableEnvironment));
+    retVal.setJpaProperties(EnvironmentHelper.getHibernateProperties(configurableEnvironment,
+        myConfigurableListableBeanFactory));
     return retVal;
   }
 
@@ -86,21 +90,18 @@ public class FhirServerConfigR4 extends BaseJavaConfigR4 {
   }
 
   @Bean()
-  public ElasticsearchSvcImpl elasticsearchSvc() {
-    if (EnvironmentHelper.isElasticsearchEnabled(configurableEnvironment)) {
+  public ElasticsearchSvcImpl elasticsearchSvc(PartitionSettings thePartitionSetings) {
+    if (Boolean.TRUE.equals(EnvironmentHelper.isElasticsearchEnabled(configurableEnvironment))) {
       String elasticsearchUrl = EnvironmentHelper.getElasticsearchServerUrl(configurableEnvironment);
-      String elasticsearchHost;
+      String elasticsearchHost = elasticsearchUrl;
+      String elasticsearchProtocol = EnvironmentHelper.getElasticsearchServerProtocol(configurableEnvironment);
       if (elasticsearchUrl.startsWith("http")) {
-        elasticsearchHost = elasticsearchUrl.substring(elasticsearchUrl.indexOf("://") + 3,
-            elasticsearchUrl.lastIndexOf(":"));
-      } else {
-        elasticsearchHost = elasticsearchUrl.substring(0, elasticsearchUrl.indexOf(":"));
+        elasticsearchProtocol = elasticsearchUrl.split("://")[0];
+        elasticsearchHost = elasticsearchUrl.split("://")[1];
       }
-
       String elasticsearchUsername = EnvironmentHelper.getElasticsearchServerUsername(configurableEnvironment);
       String elasticsearchPassword = EnvironmentHelper.getElasticsearchServerPassword(configurableEnvironment);
-      int elasticsearchPort = Integer.parseInt(elasticsearchUrl.substring(elasticsearchUrl.lastIndexOf(":") + 1));
-      return new ElasticsearchSvcImpl(elasticsearchHost, elasticsearchPort, elasticsearchUsername,
+      return new ElasticsearchSvcImpl(thePartitionSetings, elasticsearchUrl, elasticsearchUsername,
           elasticsearchPassword);
     } else {
       return null;
