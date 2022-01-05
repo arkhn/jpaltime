@@ -1,4 +1,4 @@
-FROM maven:3.6.3-jdk-11-slim as build-hapi
+FROM maven:3.8.2-jdk-11-slim as build-hapi
 WORKDIR /tmp/hapi-fhir-jpaserver-starter
 
 COPY pom.xml .
@@ -13,8 +13,8 @@ FROM alpine:3.13 as hapi-fhir-cli
 WORKDIR /tmp
 
 RUN apk add wget tar
-RUN wget -4 --no-verbose https://github.com/hapifhir/hapi-fhir/releases/download/v5.5.0/hapi-fhir-5.5.0-cli.tar.bz2
-RUN tar xjf hapi-fhir-5.5.0-cli.tar.bz2
+RUN wget -4 --no-verbose https://github.com/hapifhir/hapi-fhir/releases/download/v5.6.0/hapi-fhir-5.6.0-cli.tar.bz2
+RUN tar xjf hapi-fhir-5.6.0-cli.tar.bz2
 
 #FINAL IMAGE
 FROM gcr.io/distroless/java:11
