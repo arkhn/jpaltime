@@ -1,17 +1,13 @@
 package ca.uhn.fhir.jpa.starter;
 
 import ca.uhn.fhir.context.ConfigurationException;
-import ca.uhn.fhir.jpa.api.dao.IFhirResourceDao;
 import ca.uhn.fhir.jpa.config.BaseJavaConfigR4;
 import ca.uhn.fhir.jpa.model.config.PartitionSettings;
 import ca.uhn.fhir.jpa.search.DatabaseBackedPagingProvider;
 import ca.uhn.fhir.jpa.search.lastn.ElasticsearchSvcImpl;
 import ca.uhn.fhir.jpa.starter.annotations.OnR4Condition;
 import ca.uhn.fhir.jpa.starter.cql.StarterCqlR4Config;
-import ca.uhn.fhir.jpa.starter.documentReference.DocumentReferenceDao;
-import ca.uhn.fhir.jpa.starter.documentReference.RegexDocumentReferenceResourceProvider;
 
-import org.springframework.beans.factory.annotation.Autowire;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.annotation.*;
@@ -107,27 +103,4 @@ public class FhirServerConfigR4 extends BaseJavaConfigR4 {
       return null;
     }
   }
-
-  @Override
-  @Bean(name = "myDocumentReferenceDaoR4")
-  public IFhirResourceDao<org.hl7.fhir.r4.model.DocumentReference> daoDocumentReferenceR4() {
-
-    DocumentReferenceDao retVal;
-    retVal = new DocumentReferenceDao();
-    retVal.setResourceType(org.hl7.fhir.r4.model.DocumentReference.class);
-    retVal.setContext(fhirContextR4());
-    return retVal;
-  }
-
-  @Override
-  @Bean(name = "myDocumentReferenceRpR4")
-  @Lazy
-  public ca.uhn.fhir.jpa.rp.r4.DocumentReferenceResourceProvider rpDocumentReferenceR4() {
-    RegexDocumentReferenceResourceProvider retVal;
-    retVal = new RegexDocumentReferenceResourceProvider();
-    retVal.setContext(fhirContextR4());
-    retVal.setDao(daoDocumentReferenceR4());
-    return retVal;
-  }
-
 }
