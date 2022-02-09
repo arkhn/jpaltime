@@ -80,6 +80,9 @@ public class FhirServerConfigCommon {
     retVal.setAutoCreatePlaceholderReferenceTargets(appProperties.getAuto_create_placeholder_reference_targets());
     retVal.setEnforceReferentialIntegrityOnWrite(appProperties.getEnforce_referential_integrity_on_write());
     retVal.setEnforceReferentialIntegrityOnDelete(appProperties.getEnforce_referential_integrity_on_delete());
+    retVal.setMassIngestionMode(appProperties.getMass_ingestion_mode());
+    retVal.setDeleteEnabled(appProperties.getDelete_enabled());
+    ourLog.info("Server configured with mass_ingestion_mode {} and delete_enable {}", appProperties.getMass_ingestion_mode(), appProperties.getDelete_enabled());
     retVal.setAllowContainsSearches(appProperties.getAllow_contains_searches());
     retVal.setAllowMultipleDelete(appProperties.getAllow_multiple_delete());
     retVal.setAllowExternalReferences(appProperties.getAllow_external_references());
